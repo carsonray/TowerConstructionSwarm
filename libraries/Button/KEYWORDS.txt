@@ -1,0 +1,8 @@
+Button	KEYWORD1
+update	KEYWORD2
+state		KEYWORD2
+change	KEYWORD2
+changeTo	KEYWORD2
+pulseTime	KEYWORD2
+pulse		KEYWORD2
+
