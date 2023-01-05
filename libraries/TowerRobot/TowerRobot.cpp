@@ -15,10 +15,10 @@ TowerRobot::TowerRobot() {
     gripper = Gripper();
 }
 
-TowerRobot::moveToBlock(int num) {
+void TowerRobot::moveToBlock(int num) {
     moveToBlock(num, 0);
 }
-TowerRobot::moveToBlock(int num, int loadState) {
+void TowerRobot::moveToBlock(int num, int loadState) {
     slide.moveToBlock(num);
     switch (loadState) {
         case 1:
@@ -32,20 +32,20 @@ TowerRobot::moveToBlock(int num, int loadState) {
     }
 }
 
-TowerRobot::load() {
+void TowerRobot::load() {
     turret.rotateToTower();
     gripper.close();
 }
 
-TowerRobot::unload() {
+void TowerRobot::unload() {
     turret.rotateToTower()
     gripper.open();
 }
 
-TowerRobot::rotateToScan() {
+void TowerRobot::rotateToScan() {
     turret.rotateToScan();
 }
 
-TowerRobot::rotateToTower() {
+void TowerRobot::rotateToTower() {
     turret.rotateToTower();
 }

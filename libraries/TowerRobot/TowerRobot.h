@@ -20,13 +20,13 @@ class TowerRobot {
         Gripper gripper;
 	public:
     	TowerRobot();
-        moveToBlock(int num, int loadState);
+      	void moveToBlock(int num, int loadState);
 
-        load();
-        unload();
+      	void load();
+      	void unload();
 
-        rotateToScan();
-        rotateToTower();
+      	void rotateToScan();
+      	void rotateToTower();
 };
 
 #endif
