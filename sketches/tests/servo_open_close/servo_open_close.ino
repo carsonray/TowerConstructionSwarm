@@ -1,11 +1,11 @@
-  #include <Servo.h>
+#include <Servo.h>
 #include <Button.h>
 
 //Servo pin
-#define servoPin 5
+#define servoPin 2
 
 //Button pin
-#define buttonPin 6
+#define buttonPin 8
 
 //Whether gripper is open
 boolean openState = true;
@@ -17,14 +17,10 @@ Button button = Button(buttonPin, 10);
 
 void setup() {
   //Attaches servo
-  Serial.begin(9600);
   servo.attach(servoPin);
 }
 
 void loop() {
-  Serial.print(digitalRead(buttonPin));
-  Serial.print(button.state(false));
-  Serial.println(button.state());
   if (button.changeTo(LOW)) {
     openState = !openState;
     if (openState) {
@@ -35,9 +31,9 @@ void loop() {
   }
 
   if (openState) {
-    servo.write(50);
+    servo.write(40);
   } else {
-    servo.write(175);
+    servo.write(160);
   }
 
   button.update();

@@ -1,7 +1,6 @@
 /*
   Button.h - Library for handling button events and debouncing
   Created by Carson G. Ray, August 12 2022.
-  Released into the public domain.
 */
 
 #ifndef Button_h
