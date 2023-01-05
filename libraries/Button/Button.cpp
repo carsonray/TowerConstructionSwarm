@@ -7,9 +7,9 @@
 #include "Arduino.h"
 #include "Button.h"
 
-Button::Button(int _pin) {
+Button::Button(int pin) {
 	//Sets button input
-	pin = _pin;
+	this->pin = pin;
 	pinMode(pin, INPUT);
 
 	//Sets debounce and pulse start times
@@ -18,14 +18,14 @@ Button::Button(int _pin) {
 	prevStart = millis();
 }
 
-Button::Button(int _pin, bool _pullup) : Button(_pin) {
+Button::Button(int pin, bool pullup) : Button(pin) {
 	//Sets pullup/pulldown state
-	pullup = _pullup;
+	this->pullup = pullup;
 }
 
-Button::Button(int _pin, int _debounce, bool _pullup=false): Button(_pin, _pullup) {
+Button::Button(int pin, int debounce, bool pullup=false): Button(pin, pullup) {
 	//Sets debounce length
-	debounce = _debounce;
+	this->debounce = debounce;
 }
 
 void Button::update() {
