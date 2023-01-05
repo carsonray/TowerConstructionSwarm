@@ -11,9 +11,15 @@
 
 class Slide {
 	private:
-
+		AccelStepper stepper;
+		int stepsPerBlock;
+		int stepPin;
+		int dir;
+		int modePins[3];
 	public:
-    	Slide();
+    	Slide(int spb, int step, int dir, int*modePins);
+
+		void moveToBlock(int num);
 };
 
 #endif

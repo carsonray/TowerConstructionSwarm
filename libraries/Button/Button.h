@@ -43,9 +43,9 @@ class Button {
 		void updatePulse();
 
 	public:
-    	Button(int _pin);
-		Button(int _pin, bool _pullup);    
-		Button(int _pin, int _debounce, bool _pullup=false);
+    	Button(int pin);
+		Button(int pin, bool pullup);    
+		Button(int pin, int debounce, bool pullup=false);
 
 		void update();
 

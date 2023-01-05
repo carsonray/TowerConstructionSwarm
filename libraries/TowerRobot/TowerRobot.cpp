@@ -15,6 +15,9 @@ TowerRobot::TowerRobot() {
     gripper = Gripper();
 }
 
+TowerRobot::moveToBlock(int num) {
+    moveToBlock(num, 0);
+}
 TowerRobot::moveToBlock(int num, int loadState) {
     slide.moveToBlock(num);
     switch (loadState) {
