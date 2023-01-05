@@ -2,7 +2,7 @@
 #include <Slide.h>
 
 // Define parameters
-const int stepsPerBlock = 10;
+const int stepsPerBlock = 222;
 const int stepPin 12
 const int dirPin 13
 const int[] modePins = {9, 10, 11}
