@@ -7,8 +7,8 @@
 #include "Arduino.h"
 #include "Button.h"
 
+//Sets button input
 Button::Button(int pin) {
-	//Sets button input
 	this->pin = pin;
 	pinMode(pin, INPUT);
 
@@ -18,19 +18,18 @@ Button::Button(int pin) {
 	prevStart = millis();
 }
 
+//Sets pullup/pulldown state
 Button::Button(int pin, bool pullup) : Button(pin) {
-	//Sets pullup/pulldown state
 	this->pullup = pullup;
 }
 
+//Sets debounce length
 Button::Button(int pin, int debounce, bool pullup=false): Button(pin, pullup) {
-	//Sets debounce length
 	this->debounce = debounce;
 }
 
+//Updates button states
 void Button::update() {
-	//Updates button states
-
 	//Updates pulse times and fallback state if fully debounced
 	updatePulse();
 
@@ -63,8 +62,8 @@ void Button::update() {
 	}
 }
 
+//Updates pulse times if fully debounced
 void Button::updatePulse() {
-	//Updates pulse times if fully debounced
 	if (change()) {
 		//Sets previous pulse start
 		prevStart = pulseStart;
@@ -75,6 +74,8 @@ void Button::updatePulse() {
 }
 
 // Button event functions
+
+// Current button state
 bool Button::state() {
 	//Default is using debounce
 	return state(true);
@@ -90,6 +91,7 @@ bool Button::state(bool bounce) {
 	}
 }
 
+//If button state has changed
 bool Button::change() {
 	return change(true);
 }
@@ -104,12 +106,12 @@ bool Button::change(bool bounce) {
 	}
 }
 
+//If state has just changed to target
 bool Button::changeTo(bool target) {
 	return changeTo(target, true);
 }
 
 bool Button::changeTo(bool target, bool bounce) {
-	//If state has just changed to target
 	return change(bounce) && (state(bounce) == target);
 }
 
@@ -117,6 +119,7 @@ int Button::pulseTime() {
 	return pulseTime(true);
 }
 
+//Elapsed time of current pulse
 int Button::pulseTime(bool bounce) {
 	//Updates pulse times
 	updatePulse();
@@ -130,13 +133,13 @@ int Button::pulseTime(bool bounce) {
 	}
 }
 
+//Returns previous pulse length
 int Button::pulse() {
-	//Returns previous pulse length
 	return pulseStart - prevStart;
 }
 
+//Returns previous pulse length if it was target state
 int Button::pulse(bool target) {
-	//Returns previous pulse length if it was target state
 	if (state() != target) {
 		return pulse();
 	} else {
