@@ -40,11 +40,11 @@ class ScaledStepper : public AccelStepper {
         
         void setModePins(bool mode1, bool mode2, bool mode3);
 
-        long scalePos(long rawPos);
-        long unscalePos(long scaledPos);
+        double scalePos(long rawPos);
+        long unscalePos(double scaledPos);
 
-        float scaleVal(float raw);
-        float unscaleVal(float scaled);
+        double scaleVal(double raw);
+        double unscaleVal(double scaled);
 	public:
     	ScaledStepper(int step, int dir, int mode1, int mode2, int mode3);
 
@@ -67,11 +67,11 @@ class ScaledStepper : public AccelStepper {
         double targetPosition();
 
         double distanceToGo();
-        void setCurrentPosition(long position);
-        void runToNewPosition(long position);
+        void setCurrentPosition(double position);
+        void runToNewPosition(double position);
 
-        void moveTo(long absolute);
-        void move(long relative);
+        void moveTo(double absolute);
+        void move(double relative);
 
         float speed();
         float maxSpeed();

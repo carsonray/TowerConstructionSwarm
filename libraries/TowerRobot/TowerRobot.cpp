@@ -13,6 +13,6 @@ TowerRobot::TowerRobot() {
 	slide = Slide();
 }
 
-TowerRobot::Slide() {
+TowerRobot::Slide::Slide() {
     
 }
