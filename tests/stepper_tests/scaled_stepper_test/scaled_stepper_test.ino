@@ -14,9 +14,11 @@ ScaledStepper myStepper(stepPin, dirPin, modePins[0], modePins[1], modePins[2]);
 void setup() {
   // set the maximum speed, acceleration factor,
   // initial speed and the target position
+  myStepper.setStepMode(4);
+  myStepper.enableModeSwitch();
   myStepper.setMaxSpeed(1000);
   myStepper.setAcceleration(50);
-  myStepper.setSpeed(200);
+  myStepper.setSpeed(100);
   myStepper.moveTo(STEPS_PER_REV);
 }
 

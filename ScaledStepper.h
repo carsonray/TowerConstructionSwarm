@@ -18,7 +18,7 @@ class ScaledStepper : public AccelStepper {
 		float scaleFactor = 1;
 
         //Limits of step speed before step mode is changed
-        float speedRange[2] = {200, 1000};
+        float speedRange[2] = {80, 180};
 
         //Range of permited microstepping modes
         int modeRange[2] = {1, 16};

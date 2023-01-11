@@ -122,15 +122,17 @@ void ScaledStepper::resetTracking() {
 Runs stepper one step
 */
 boolean ScaledStepper::run() {
-    //Gets raw step speed
-    float rawSpeed = AccelStepper::speed();
-    
-    if (rawSpeed < speedRange[0] && stepMode < modeRange[1]) {
-        //Moves to lower microstepping mode to increase step speed
-        setStepMode(stepMode*2);
-    } else if (rawSpeed > speedRange[1] && stepMode > modeRange[0]) {
-        //Moves to higher microstepping mode to decrease step speed
-        setStepMode(stepMode/2);
+    if (useModeSwitch) {
+        //Gets raw step speed
+        float rawSpeed = AccelStepper::speed();
+
+        if (rawSpeed < speedRange[0] && stepMode < modeRange[1]) {
+            //Moves to lower microstepping mode to increase step speed
+            setStepMode(stepMode*2);
+        } else if (rawSpeed > speedRange[1] && stepMode > modeRange[0]) {
+            //Moves to higher microstepping mode to decrease step speed
+            setStepMode(stepMode/2);
+        }
     }
     return AccelStepper::run();
 }
