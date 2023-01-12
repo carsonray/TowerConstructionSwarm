@@ -80,11 +80,6 @@ void ScaledStepper::setModePins(bool mode1, bool mode2, bool mode3) {
 
 //Sets microstepping mode  (ex. 4 is quarter stepping)
 void ScaledStepper::setStepMode(int stepMode) {
-    //Automatically disables dynamic mode switching
-    enableModeSwitch(false);
-
-    this->stepMode = stepMode;
-
     switch (stepMode) {
         case 2:
             setModePins(HIGH, LOW, LOW);
@@ -104,8 +99,16 @@ void ScaledStepper::setStepMode(int stepMode) {
             break;
     }
 
-    //Resets full step integration
-    resetTracking();
+    //Sets step mode
+    int prevMode = this->stepMode;
+    this->stepMode = stepMode;
+
+    //Resets full step integration and stepper settings
+    resetTracking(prevMode, stepMode);
+}
+
+int ScaledStepper::getStepMode() {
+    return stepMode;
 }
 
 /*
@@ -113,9 +116,19 @@ Resets full step integration
 Updates counters so that appropriate number of microsteps
 add one full step to net position
 */
-void ScaledStepper::resetTracking() {
+void ScaledStepper::resetTracking(int prevMode, int currMode) {
+    //Updates current position
     prevRawPos = AccelStepper::currentPosition();
-    prevScaledPos = currentPosition();
+
+    //Updates stepper settings for mode
+    double scaleFactor = ((double) currMode)/prevMode;
+
+    AccelStepper::setSpeed(unscaleVal(AccelStepper::speed(), scaleFactor));
+    AccelStepper::setMaxSpeed(unscaleVal(AccelStepper::maxSpeed(), scaleFactor));
+    AccelStepper::setAcceleration(unscaleVal(AccelStepper::acceleration(), scaleFactor));
+    Serial.println(AccelStepper::targetPosition());
+    AccelStepper::moveTo(unscalePos(AccelStepper::targetPosition(), scaleFactor));
+    Serial.println(AccelStepper::targetPosition());
 }
 
 /*
@@ -124,16 +137,17 @@ Runs stepper one step
 boolean ScaledStepper::run() {
     if (useModeSwitch) {
         //Gets raw step speed
-        float rawSpeed = AccelStepper::speed();
-
-        if (rawSpeed < speedRange[0] && stepMode < modeRange[1]) {
+        float rawSpeed = abs(AccelStepper::speed());
+        
+        if ((rawSpeed < speedRange[0]) && (stepMode < modeRange[1])) {
             //Moves to lower microstepping mode to increase step speed
             setStepMode(stepMode*2);
-        } else if (rawSpeed > speedRange[1] && stepMode > modeRange[0]) {
+        } else if ((rawSpeed > speedRange[1]) && (stepMode > modeRange[0])) {
             //Moves to higher microstepping mode to decrease step speed
             setStepMode(stepMode/2);
         }
     }
+    
     return AccelStepper::run();
 }
 
@@ -145,8 +159,11 @@ double ScaledStepper::scalePos(long rawPos) {
 
 //Unscales intergrated full steps to raw step position
 long ScaledStepper::unscalePos(double scaledPos) {
+    return unscalePos(scaledPos, stepMode);
+}
+long ScaledStepper::unscalePos(double scaledPos, double scaleFactor) {
     //Uses zero positions at last mode change and integrates
-    return (long) ((scaledPos-prevScaledPos)*stepMode + prevRawPos);
+    return (long) ((scaledPos-prevScaledPos)*scaleFactor + prevRawPos);
 }
 
 //Scales value to terms of full steps
@@ -156,7 +173,10 @@ double ScaledStepper::scaleVal(double raw) {
 
 //Unscales value to terms of raw steps
 double ScaledStepper::unscaleVal(double scaled) {
-    return scaled*stepMode;
+    return unscaleVal(scaled, stepMode);
+}
+double ScaledStepper::unscaleVal(double scaled, double scaleFactor) {
+    return scaled*scaleFactor;
 }
 
 //Gets current full step position
@@ -177,8 +197,8 @@ double ScaledStepper::distanceToGo() {
 //Resets full step position
 void ScaledStepper::setCurrentPosition(double position) {
     AccelStepper::setCurrentPosition(0);
+    prevRawPos = 0;
     prevScaledPos = position;
-    resetTracking();
 }
 
 //Runs one step unless full step position is reached

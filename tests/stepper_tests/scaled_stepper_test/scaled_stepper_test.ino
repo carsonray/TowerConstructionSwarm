@@ -12,9 +12,10 @@ const int STEPS_PER_REV = 200;
 ScaledStepper myStepper(stepPin, dirPin, modePins[0], modePins[1], modePins[2]);
 
 void setup() {
+  Serial.begin(9600);
+
   // set the maximum speed, acceleration factor,
   // initial speed and the target position
-  myStepper.setStepMode(4);
   myStepper.enableModeSwitch();
   myStepper.setMaxSpeed(1000);
   myStepper.setAcceleration(50);
@@ -29,4 +30,13 @@ void loop() {
 
   // Move the motor one step
   myStepper.run();
+  if (millis() % 1 == 0)
+  {
+    Serial.print("Stepmode: ");
+    Serial.println(myStepper.getStepMode());
+    Serial.print("Position: ");
+    Serial.println(myStepper.currentPosition());
+    Serial.print("Speed: ");
+    Serial.println(myStepper.speed()*myStepper.getStepMode());
+  }
 }
