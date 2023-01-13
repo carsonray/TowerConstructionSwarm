@@ -17,9 +17,8 @@ void setup() {
   // set the maximum speed, acceleration factor,
   // initial speed and the target position
   myStepper.enableModeSwitch();
-  myStepper.setMaxSpeed(1000);
+  myStepper.setMaxSpeed(100);
   myStepper.setAcceleration(50);
-  myStepper.setSpeed(100);
   myStepper.moveTo(STEPS_PER_REV);
 }
 
@@ -37,6 +36,6 @@ void loop() {
     Serial.print("Position: ");
     Serial.println(myStepper.currentPosition());
     Serial.print("Speed: ");
-    Serial.println(myStepper.speed()*myStepper.getStepMode());
+    Serial.println(myStepper.speed());
   }
 }

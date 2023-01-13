@@ -14,11 +14,8 @@ class ScaledStepper : public AccelStepper {
         //A4988 pins to change microstepping modes
         int modePins[3];
 
-        //Steps per unit of external scale
-		float scaleFactor = 1;
-
         //Limits of step speed before step mode is changed
-        float speedRange[2] = {20, 100};
+        float speedRange[2] = {250, 450};
 
         //Range of permited microstepping modes
         int modeRange[2] = {1, 16};
@@ -42,17 +39,15 @@ class ScaledStepper : public AccelStepper {
 
         double scalePos(long rawPos);
         long unscalePos(double scaledPos);
-        long unscalePos(double scaledPos, double scaleFactor);
 
         double scaleVal(double raw);
         double unscaleVal(double scaled);
-        double unscaleVal(double scaled, double scaleFactor);
+
+        void checkModeSwitch(float speed);
+        void fitMode(float speed, float bound);
+        float loga(float base, float arg);
 	public:
     	ScaledStepper(int step, int dir, int mode1, int mode2, int mode3);
-
-        void setScale(float scaleFactor);
-        float s(float input);
-        float _s(float output);
 
         void setSpeedRange(float minSpeed, float maxSpeed);
         void setModeRange(int minMode, int maxMode);
@@ -62,9 +57,7 @@ class ScaledStepper : public AccelStepper {
         void setStepMode(int stepMode);
         int getStepMode();
 
-        void resetTracking(int prevMode, int currMode);
-
-        boolean run();
+        void resetTracking();
 
         double currentPosition();
         double targetPosition();
