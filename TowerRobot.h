@@ -82,6 +82,12 @@ class TowerRobot {
 				//Default max speed
 				double defMax = 45;
 
+				//Tower positions
+				double[4] towerPos = {0, 90, 180, 270, 360};
+
+				//Carry offset
+				double carryOffset = 45;
+
 				double convertToDegree(double raw);
 				double convertToRaw(double degree);
 
@@ -106,6 +112,12 @@ class TowerRobot {
 				
 				void moveBy(double relDegree);
 				void moveBy(double relDegree, double accel, double max);
+
+				void moveToTower(int tower);
+				void moveToTower(int tower, double accel, double max);
+
+				/*void moveToCarry(int tower);
+				void moveToCarry(int tower, double accel, double max);*/
 		};
 
 		class Gripper {
