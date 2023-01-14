@@ -157,6 +157,9 @@ class TowerRobot {
 
 		void home();
 
+		void moveToBlock(int tower);
+		void moveToBlock(int tower, int blockNum);
+
 		void load(int tower);
 		void load(int tower, int blockNum);
 

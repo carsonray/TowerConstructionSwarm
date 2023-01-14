@@ -22,9 +22,27 @@ void wait() {
 
 //Homes robot
 void TowerRobot::home() {
-  gripper.close();
+  gripper.open();
   slide.home();
   turret.moveTo(false, 0);
+}
+
+//Moves to tower and block position
+void TowerRobot::moveToBlock(int tower) {
+  //Moves to top of tower as default
+  moveToBlock(tower, towerHeights[tower] - 1)
+}
+void TowerRobot::moveToBlock(int tower, int blockNum) {
+  if (cargo == 0) {
+    //No cargo
+
+    //Opens gripper to clear towers
+    gripper.open();
+
+    //Moves to correct position
+    slide.moveToBlock(blockNum);
+    turret.moveToTower(tower);
+  }
 }
 
 //Loads block(s) from position on tower
@@ -33,9 +51,6 @@ void TowerRobot::load(int tower) {
   load(tower, towerHeights[tower] - 1);
 }
 void TowerRobot::load(int tower, int blockNum) {
-  //Opens gripper
-  gripper.open();
-
   //Moves to correct tower and block
   moveToBlock(tower, blockNum);
 
@@ -51,7 +66,7 @@ void TowerRobot::load(int tower, int blockNum) {
 //Unloads block(s) on top of tower
 void TowerRobot::unload(int tower) {
   //Moves to top of tower
-  moveToBlock(tower, towerHeights[tower]);
+  moveToBlock(tower);
 
   //Opens gripper
   gripper.open();
