@@ -8,6 +8,7 @@
 
 #include "Arduino.h"
 #include "ScaledStepper.h"
+#include "Servo.h"
 #include "Turret.h"
 #include "Gripper.h"
 
@@ -50,7 +51,7 @@ class TowerRobot {
 
 				bool isOpen();
 				void setOpen(bool openState);
-				
+
 				void toggle();
 		};
 
