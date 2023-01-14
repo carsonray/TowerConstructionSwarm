@@ -13,6 +13,20 @@ TowerRobot::TowerRobot(Slide slide, Turret turret, Gripper gripper) {
   this->gripper = gripper;
 }
 
+//Waits on all busy modules
+void wait() {
+  slide.wait();
+  turret.wait();
+  gripper.wait();
+}
+
+//Homes robot
+void TowerRobot::home() {
+  gripper.close();
+  slide.home();
+  turret.moveTo(false, 0);
+}
+
 //Loads block(s) from position on tower
 void TowerRobot::load(int tower) {
   //Loads from top of tower as default
