@@ -108,3 +108,19 @@ void TowerRobot::Turret::moveByBlock(double blockRel) {
 void TowerRobot::Turret::moveByBlock(double blockRel, double accel, double max) {
   moveToBlock(currentPosition() + blockRel, accel, max);
 }
+
+//Moves to tower position
+void TowerRobot::Turret::moveToTower(int tower) {
+  moveToTower(tower, defAccel, defMax);
+}
+void TowerRobot::Turret::moveToTower(int tower, double accel, doubel max) {
+  moveTo(false, towerPos[tower], accel, max);
+}
+
+//Moves to carry position next to tower
+/*void TowerRobot::Turret::moveToCarry(int tower) {
+  moveToCarry(tower, defAcce, defMax);
+}
+void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
+
+}*/
