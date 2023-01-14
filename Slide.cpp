@@ -81,8 +81,7 @@ bool TowerRobot::Slide::run() {
   if (checkLimits()) {
     return false;
   } else {
-    stepper.run();
-    return true;
+    return stepper.run();
   }
 }
 

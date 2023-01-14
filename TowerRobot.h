@@ -12,7 +12,7 @@
 
 class TowerRobot {
 	public:
-    	TowerRobot();
+    	TowerRobot(Slide slide, Turret turret, Gripper gripper);
 
 		class Slide {
 			private:
@@ -70,9 +70,42 @@ class TowerRobot {
 
 		class Turret {
 			private:
+				//Steps per degree
+				double stepsPerDegree;
 
+				//Ring drive stepper
+				ScaledStepper stepper;
+
+				//Default acceleration
+				double defAccel = 2;
+
+				//Default max speed
+				double defMax = 45;
+
+				double convertToDegree(double raw);
+				double convertToRaw(double degree);
+
+				double localize(double globalAngle)
 			public:
-				Turret();
+				Turret(double stepsPerDegree, ScaledStepper stepper);
+
+				double distanceToGo();
+				void wait();
+
+				double currentPosition();
+				double currentPosition(bool global);
+
+				double targetPosition()
+				double targetPosition(bool global);
+
+				bool run();
+				void stop(bool brake);
+
+				void moveTo(bool global, double degree);
+				void moveTo(bool global, double degree, double accel, double max);
+				
+				void moveBy(double relDegree);
+				void moveBy(double relDegree, double accel, double max);
 		};
 
 		class Gripper {
@@ -100,10 +133,21 @@ class TowerRobot {
 				void toggle();
 		};
 
+		void load(int tower);
+		void load(int tower, int blockNum);
+
+		void unload(int tower);
+
 	private:
 		Slide slide;
 		Turret turret;
 		Gripper gripper;
+
+		//Block heights of each tower
+		int[4] towerHeights = {0, 0, 0, 0};
+
+		//Margin to clear blocks after loading
+		double clearMargin = 0.1;
 };
 
 #endif

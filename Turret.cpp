@@ -4,9 +4,107 @@
 */
 
 #include "Arduino.h"
-#include "AccelStepper.h"
+#include "ScaledStepper.h"
 #include "TowerRobot.h"
 
-TowerRobot::Turret::Turret() {
-	
+TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper stepper) {
+	this->stepsPerDegree = stepsPerDegree;
+  this->stepper = stepper;
+  stepper.enableModeSwitch();
+}
+
+//Converts raw steps to degrees
+double TowerRobot::Turret::convertToDegree(double raw) {
+  return raw/stepsPerDegree;
+}
+
+//Converts degrees to raw steps
+double TowerRobot::Turret::convertToRaw(double degree) {
+  return degree*stepsPerDegree;
+}
+
+//Gets local angle from global angle
+double TowerRobot::Turret::localize(double globalAngle) {
+  return globalAngle - round(globalAngle/360)*360;
+}
+
+//Gets distance to target position
+double TowerRobot::Turret::distanceToGo() {
+  return convertToDegree(stepper.distanceToGo());
+}
+
+//Waits until Turret is not moving
+void TowerRobot::Turret::wait() {
+  //Runs Turret while waiting to stop
+  while (run()) {
+    
+  }
+}
+
+//Returns current block position
+double TowerRobot::Turret::currentPosition() {
+  return currentPosition(true);
+}
+double TowerRobot::Turret::currentPosition(bool global) {
+  double rawPos = convertToDegree(stepper.currentPosition());
+
+  if (!global) {
+    rawPos = localize(rawPos);
+  }
+  
+  return rawPos;
+}
+
+//Returns block target position
+double TowerRobot::Turret::targetPosition() {
+  return targetPosition(true);
+}
+double TowerRobot::Turret::targetPosition(bool global) {
+  double rawPos = convertToDegree(stepper.targetPosition());
+
+  if (!global) {
+    rawPos = localize(rawPos);
+  }
+  
+  return rawPos;
+}
+
+//Runs Turret step
+bool TowerRobot::Turret::run() {
+  return stepper.run();
+}
+
+//Stops Turret
+void TowerRobot::Turret::stop(bool brake) {
+  if (brake) {
+    //Soft stop
+    stepper.stop();
+  } else {
+    //Hard stop
+    stepper.setSpeed(0);
+  }
+}
+
+//Moves to block position
+void TowerRobot::Turret::moveTo(bool global, double degree) {
+  moveTo(global, degree, defAccel, defMax);
+}
+void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double max) {
+  //If local target, add to local position
+  if (!global) {
+    degree = currentPosition() - currentPosition(false) + degree;
+  }
+
+  //Sets stepper settings
+  stepper.setAcceleration(accel);
+  stepper.setMaxSpeed(max);
+  stepper.moveTo(convertToRaw(degree));
+}
+
+//Moves relatively by blocks
+void TowerRobot::Turret::moveByBlock(double blockRel) {
+  moveByBlock(blockRel, defAccel, defMax);
+}
+void TowerRobot::Turret::moveByBlock(double blockRel, double accel, double max) {
+  moveToBlock(currentPosition() + blockRel, accel, max);
 }
