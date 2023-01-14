@@ -37,6 +37,17 @@ void TowerRobot::Gripper::setOpen(bool openState) {
   } else {
     servo.write(gripPos[1]);
   }
+
+  //Updates action timer
+  lastAction = millis();
+  waitTime = 2000;
+}
+
+//Waits for action to complete
+void TowerRobot::Gripper::wait() {
+  while ((millis() - lastAction) < waitTime) {
+    
+  }
 }
 
 //Toggles gripper open state

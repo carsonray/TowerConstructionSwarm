@@ -119,6 +119,12 @@ class TowerRobot {
 				//Whether gripper is open
 				bool openState;
 
+				//Time of last action
+				unsigned long lastAction = 0;
+
+				//Wait time after action
+				unsigned long waitTime = 0;
+
 				//Positions
 				int[2] gripPos = {40, 160}
 			public:
@@ -129,6 +135,8 @@ class TowerRobot {
 
 				bool isOpen();
 				void setOpen(bool openState);
+
+				void wait();
 
 				void toggle();
 		};
