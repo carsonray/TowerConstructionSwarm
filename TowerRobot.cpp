@@ -42,6 +42,36 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     //Moves to correct position
     slide.moveToBlock(blockNum);
     turret.moveToTower(tower);
+    slide.wait();
+    turret.wait();
+  } else {
+    //Clears current tower
+    if (slide.currentPosition() <= towerHeights[turret.currTowerPos()]) {
+      slide.moveByBlock(clearMargin);
+    }
+    
+    //Loops through towers between current and target
+    for (int testPos = turret.currTowerPos(); testPos <= tower; testPos = turret.nextTower(testPos, tower)) {
+      if (slide.currentPosition() > towerHeights[testPos]) {
+        //If current position will not clear tower
+
+        //Moves to height of obstructing tower + margin
+        slide.moveToBlock(towerHeights[turret.currTowerPos()] + clearMargin);
+
+        //Moves to carry position next to tower
+        turret.moveToCarry(turret.currTowerPos());
+
+        slide.wait();
+        turret.wait();
+      }
+    }
+
+    //Moves final step to tower and block position
+    turret.moveToTower(tower);
+    turret.wait();
+
+    slide.moveToBlock(blockNum);
+    slide.wait();
   }
 }
 
