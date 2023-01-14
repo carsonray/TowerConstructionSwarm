@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "AccelStepper.h"
 #include "ScaledStepper.h"
+#include "Utils.h"
 
 //Constructs stepper object on A4988 pins
 ScaledStepper::ScaledStepper(int step, int dir, int mode1, int mode2, int mode3) : AccelStepper(1, step, dir) {
@@ -121,12 +122,7 @@ void ScaledStepper::checkModeSwitch(float speed) {
 
 //Changes microstepping mode to fit speed range
 void ScaledStepper::fitMode(float speed, float bound) {
-    setStepMode(round(stepMode*pow(2, (int) loga(2, bound/speed))));
-}
-
-//Takes logarithm with base
-float ScaledStepper::loga(float base, float arg) {
-    return log(arg)/log(base);
+    setStepMode(round(stepMode*pow(2, (int) Utils::loga(2, bound/speed))));
 }
 
 /*

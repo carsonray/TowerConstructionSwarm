@@ -8,6 +8,7 @@
 
 #include "Arduino.h"
 #include "AccelStepper.h"
+#include "Utils.h"
 
 class ScaledStepper : public AccelStepper {
     private:
@@ -45,7 +46,6 @@ class ScaledStepper : public AccelStepper {
 
         void checkModeSwitch(float speed);
         void fitMode(float speed, float bound);
-        float loga(float base, float arg);
 	public:
     	ScaledStepper(int step, int dir, int mode1, int mode2, int mode3);
 
