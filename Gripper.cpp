@@ -11,9 +11,6 @@ TowerRobot::Gripper::Gripper(int gripPin) {
   //Attaches servo
 	this->gripPin = gripPin;
   servo.attach(gripPin);
-
-  //Initializes gripper open
-  open();
 }
 
 //Opens gripper
