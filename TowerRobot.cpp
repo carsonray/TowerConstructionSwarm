@@ -22,23 +22,28 @@ void TowerRobot::load(int tower, int blockNum) {
   //Opens gripper
   gripper.open();
 
-  //Moves to correct tower and turret
-  turret.moveToTower(tower);
-  slide.moveToBlock(blockNum);
-  turret.wait();
-  slide.wait();
+  //Moves to correct tower and block
+  moveToBlock(tower, blockNum);
 
-  //Closes gripper and clears blocks below it
+  //Closes gripper
   gripper.close();
   gripper.wait();
-  slide.moveByBlock(clearMargin);
-  slide.wait();
 
-  //Updates tower height
-  towerHeights[tower] = blockNum;
+  //Updates tower height and cargo
+  cargo = towerHeights[tower] - blockNum;
+  towerHeights[tower] -= cargo;
 }
 
 //Unloads block(s) on top of tower
 void TowerRobot::unload(int tower) {
-  
+  //Moves to top of tower
+  moveToBlock(tower, towerHeights[tower]);
+
+  //Opens gripper
+  gripper.open();
+  gripper.wait();
+
+  //Updates tower height and cargo
+  towerHeights[tower] += cargo;
+  cargo = 0;
 }

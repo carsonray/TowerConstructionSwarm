@@ -167,6 +167,9 @@ class TowerRobot {
 		//Block heights of each tower
 		int[4] towerHeights = {0, 0, 0, 0};
 
+		//Current number of block cargo
+		int cargo = 0;
+
 		//Margin to clear blocks after loading
 		double clearMargin = 0.1;
 };
