@@ -1,5 +1,5 @@
 /*
-  Turret.cpp - Controls ring gear drive to rotate robot
+  Slide.cpp - Controls rack and pinion drive for vertical movement
   Created by Carson G. Ray, January 4 2022.
 */
 
@@ -7,6 +7,6 @@
 #include "AccelStepper.h"
 #include "TowerRobot.h"
 
-TowerRobot::Turret::Turret() {
+TowerRobot::Slide::Slide() {
 	
 }

@@ -22,8 +22,42 @@ class TowerRobot {
 				Slide();
 		};
 
+		class Turret {
+			private:
+
+			public:
+				Turret();
+		};
+
+		class Gripper {
+			private:
+				//Pin for servo signal
+				int gripPin;
+
+				//Servo object
+				Servo servo;
+
+				//Whether gripper is open
+				bool openState;
+
+				//Positions
+				int[2] gripPos = {40, 160}
+			public:
+				Gripper(int gripPin);
+
+				void open();
+				void close();
+
+				bool isOpen();
+				void setOpen(bool openState);
+				
+				void toggle();
+		};
+
 	private:
 		Slide slide;
+		Turret turret;
+		Gripper gripper;
 };
 
 #endif
