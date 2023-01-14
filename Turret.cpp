@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "ScaledStepper.h"
 #include "TowerRobot.h"
+#include "Utils.h"
 
 TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper stepper) {
 	this->stepsPerDegree = stepsPerDegree;
@@ -118,9 +119,15 @@ void TowerRobot::Turret::moveToTower(int tower, double accel, doubel max) {
 }
 
 //Moves to carry position next to tower
-/*void TowerRobot::Turret::moveToCarry(int tower) {
-  moveToCarry(tower, defAcce, defMax);
+void TowerRobot::Turret::moveToCarry(int tower) {
+  moveToCarry(tower, defAccel, defMax);
 }
 void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
+  //Difference to target position
+  double diff = towerPos[tower] - currentPosition(false);
 
-}*/
+  //Corrects target position with carry offset
+  double target = towerPos[tower] - carryOffset * Utils::sign(diff);
+  
+  moveTo(false, target, accel, max);
+}

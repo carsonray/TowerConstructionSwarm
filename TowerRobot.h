@@ -9,6 +9,7 @@
 #include "Arduino.h"
 #include "ScaledStepper.h"
 #include "Servo.h"
+#include "Utils.h"
 
 class TowerRobot {
 	public:
@@ -116,8 +117,8 @@ class TowerRobot {
 				void moveToTower(int tower);
 				void moveToTower(int tower, double accel, double max);
 
-				/*void moveToCarry(int tower);
-				void moveToCarry(int tower, double accel, double max);*/
+				void moveToCarry(int tower);
+				void moveToCarry(int tower, double accel, double max);
 		};
 
 		class Gripper {
