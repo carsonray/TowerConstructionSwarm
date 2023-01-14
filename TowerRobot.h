@@ -83,6 +83,9 @@ class TowerRobot {
 				//Default max speed
 				double defMax = 45;
 
+				//Current tower position
+				int currTowerPos = 0;
+
 				//Tower positions
 				double[4] towerPos = {0, 90, 180, 270, 360};
 
@@ -104,6 +107,8 @@ class TowerRobot {
 
 				double targetPosition()
 				double targetPosition(bool global);
+
+				int getTowerPos();
 
 				bool run();
 				void stop(bool brake);

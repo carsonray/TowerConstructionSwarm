@@ -70,6 +70,10 @@ double TowerRobot::Turret::targetPosition(bool global) {
   return rawPos;
 }
 
+int TowerRobot::Turret::getTowerPos() {
+  return currTowerPos;
+}
+
 //Runs Turret step
 bool TowerRobot::Turret::run() {
   return stepper.run();
@@ -103,11 +107,11 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
 }
 
 //Moves relatively by blocks
-void TowerRobot::Turret::moveByBlock(double blockRel) {
-  moveByBlock(blockRel, defAccel, defMax);
+void TowerRobot::Turret::moveBy(double relDegree) {
+  moveByBlock(relDegree, defAccel, defMax);
 }
-void TowerRobot::Turret::moveByBlock(double blockRel, double accel, double max) {
-  moveToBlock(currentPosition() + blockRel, accel, max);
+void TowerRobot::Turret::moveBy(double relDegree, double accel, double max) {
+  moveToBlock(currentPosition() + relDegree, accel, max);
 }
 
 //Moves to tower position
@@ -116,6 +120,9 @@ void TowerRobot::Turret::moveToTower(int tower) {
 }
 void TowerRobot::Turret::moveToTower(int tower, double accel, doubel max) {
   moveTo(false, towerPos[tower], accel, max);
+
+  //Sets tower position
+  currTowerPos = tower;
 }
 
 //Moves to carry position next to tower
@@ -130,4 +137,7 @@ void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   double target = towerPos[tower] - carryOffset * Utils::sign(diff);
   
   moveTo(false, target, accel, max);
+
+  //Sets tower position
+  currTowerPos = tower;
 }
