@@ -81,7 +81,7 @@ bool TowerRobot::Slide::checkUpperLimit() {
 //Runs slide step
 bool TowerRobot::Slide::run() {
   //Gets current stepper speed
-  double currSpeed = convertToBlock(stepper.speed());
+  double currSpeed = convertToBlock(stepper->speed());
 
   //Checks to see if stepper is going to run through limit
   if ((checkLowerLimit() && (currSpeed < 0)) || (checkUpperLimit() && (currSpeed > 0))) {

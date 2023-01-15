@@ -26,7 +26,7 @@ class TowerRobot {
 				Button* limit;
 
 				//Homing speed
-				double homeSpeed = -0.1;
+				double homeSpeed = -0.2;
 
 				//Homing position
 				double homePos = 0;
@@ -35,10 +35,10 @@ class TowerRobot {
 				double upperLimit;
 
 				//Default acceleration
-				double defAccel = 0.5;
+				double defAccel = 1;
 
 				//Default max speed
-				double defMax = 5;
+				double defMax = 10;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
