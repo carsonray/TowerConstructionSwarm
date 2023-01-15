@@ -10,24 +10,23 @@
 #include "ScaledStepper.h"
 #include "Servo.h"
 #include "Utils.h"
+#include "Button.h"
 
 class TowerRobot {
 	public:
-    	TowerRobot(Slide slide, Turret turret, Gripper gripper);
-
 		class Slide {
 			private:
 				//Steps per block
 				double stepsPerBlock;
 
 				//Rack and pinion drive stepper
-				ScaledStepper stepper;
+				ScaledStepper* stepper;
 
 				//Lower limit switch
-				Button limit;
+				Button* limit;
 
 				//Homing speed
-				double homeSpeed = -0.5;
+				double homeSpeed = -0.1;
 
 				//Homing position
 				double homePos = 0;
@@ -39,12 +38,12 @@ class TowerRobot {
 				double defAccel = 0.5;
 
 				//Default max speed
-				double defMax = 2;
+				double defMax = 5;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
 			public:
-				Slide(double stepsPerBlock, double upperLimit, ScaledStepper stepper, Button limit);
+				Slide(double stepsPerBlock, double upperLimit, ScaledStepper* stepper, Button* limit);
 
 				double distanceToGo();
 				void wait();
@@ -75,7 +74,7 @@ class TowerRobot {
 				double stepsPerDegree;
 
 				//Ring drive stepper
-				ScaledStepper stepper;
+				ScaledStepper* stepper;
 
 				//Default acceleration
 				double defAccel = 2;
@@ -87,7 +86,7 @@ class TowerRobot {
 				int currTowerPos = 0;
 
 				//Tower positions
-				double[4] towerPos = {0, 90, 180, 270, 360};
+				double towerPos[4] = {0, 90, 180, 270};
 
 				//Carry offset
 				double carryOffset = 45;
@@ -95,9 +94,9 @@ class TowerRobot {
 				double convertToDegree(double raw);
 				double convertToRaw(double degree);
 
-				double localize(double globalAngle)
+				double localize(double globalAngle);
 			public:
-				Turret(double stepsPerDegree, ScaledStepper stepper);
+				Turret(double stepsPerDegree, ScaledStepper* stepper);
 
 				double distanceToGo();
 				void wait();
@@ -105,10 +104,12 @@ class TowerRobot {
 				double currentPosition();
 				double currentPosition(bool global);
 
-				double targetPosition()
+				double targetPosition();
 				double targetPosition(bool global);
 
 				int getTowerPos();
+
+				int nextTower(int start, int end);
 
 				bool run();
 				void stop(bool brake);
@@ -144,7 +145,7 @@ class TowerRobot {
 				unsigned long waitTime = 0;
 
 				//Positions
-				int[2] gripPos = {40, 160}
+				int gripPos[2] = {40, 160};
 			public:
 				Gripper(int gripPin);
 
@@ -156,8 +157,10 @@ class TowerRobot {
 
 				void wait();
 
-				void toggle();
+				bool toggle();
 		};
+		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
+
 		void wait();
 
 		void home();
@@ -171,12 +174,12 @@ class TowerRobot {
 		void unload(int tower);
 
 	private:
-		Slide slide;
-		Turret turret;
-		Gripper gripper;
+		Slide* slide;
+		Turret* turret;
+		Gripper* gripper;
 
 		//Block heights of each tower
-		int[4] towerHeights = {0, 0, 0, 0};
+		int towerHeights[4] = {0, 0, 0, 0};
 
 		//Current number of block cargo
 		int cargo = 0;

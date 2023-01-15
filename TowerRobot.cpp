@@ -7,71 +7,71 @@
 #include "AccelStepper.h"
 #include "TowerRobot.h"
 
-TowerRobot::TowerRobot(Slide slide, Turret turret, Gripper gripper) {
+TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper) {
 	this->slide = slide;
   this->turret = turret;
   this->gripper = gripper;
 }
 
 //Waits on all busy modules
-void wait() {
-  slide.wait();
-  turret.wait();
-  gripper.wait();
+void TowerRobot::wait() {
+  slide->wait();
+  turret->wait();
+  gripper->wait();
 }
 
 //Homes robot
 void TowerRobot::home() {
-  gripper.open();
-  slide.home();
-  turret.moveTo(false, 0);
+  gripper->open();
+  slide->home();
+  turret->moveTo(false, 0);
 }
 
 //Moves to tower and block position
 void TowerRobot::moveToBlock(int tower) {
   //Moves to top of tower as default
-  moveToBlock(tower, towerHeights[tower] - 1)
+  moveToBlock(tower, towerHeights[tower] - 1);
 }
 void TowerRobot::moveToBlock(int tower, int blockNum) {
   if (cargo == 0) {
     //No cargo
 
     //Opens gripper to clear towers
-    gripper.open();
+    gripper->open();
 
     //Moves to correct position
-    slide.moveToBlock(blockNum);
-    turret.moveToTower(tower);
-    slide.wait();
-    turret.wait();
+    slide->moveToBlock(blockNum);
+    turret->moveToTower(tower);
+    slide->wait();
+    turret->wait();
   } else {
     //Clears current tower
-    if (slide.currentPosition() <= towerHeights[turret.currTowerPos()]) {
-      slide.moveByBlock(clearMargin);
+    if (slide->currentPosition() <= towerHeights[turret->getTowerPos()]) {
+      slide->moveByBlock(clearMargin);
     }
     
     //Loops through towers between current and target
-    for (int testPos = turret.currTowerPos(); testPos <= tower; testPos = turret.nextTower(testPos, tower)) {
-      if (slide.currentPosition() > towerHeights[testPos]) {
+    for (int testPos = turret->getTowerPos(); testPos <= tower; testPos = turret->nextTower(testPos, tower)) {
+      if (slide->currentPosition() > towerHeights[testPos]) {
         //If current position will not clear tower
 
         //Moves to height of obstructing tower + margin
-        slide.moveToBlock(towerHeights[turret.currTowerPos()] + clearMargin);
+        slide->moveToBlock(towerHeights[turret->getTowerPos()] + clearMargin);
 
         //Moves to carry position next to tower
-        turret.moveToCarry(turret.currTowerPos());
+        turret->moveToCarry(turret->getTowerPos());
 
-        slide.wait();
-        turret.wait();
+        slide->wait();
+        turret->wait();
       }
     }
 
     //Moves final step to tower and block position
-    turret.moveToTower(tower);
-    turret.wait();
+    turret->moveToTower(tower);
+    turret->wait();
 
-    slide.moveToBlock(blockNum);
-    slide.wait();
+    slide->moveToBlock(blockNum);
+    slide->wait();
   }
 }
 
@@ -85,8 +85,8 @@ void TowerRobot::load(int tower, int blockNum) {
   moveToBlock(tower, blockNum);
 
   //Closes gripper
-  gripper.close();
-  gripper.wait();
+  gripper->close();
+  gripper->wait();
 
   //Updates tower height and cargo
   cargo = towerHeights[tower] - blockNum;
@@ -99,8 +99,8 @@ void TowerRobot::unload(int tower) {
   moveToBlock(tower);
 
   //Opens gripper
-  gripper.open();
-  gripper.wait();
+  gripper->open();
+  gripper->wait();
 
   //Updates tower height and cargo
   towerHeights[tower] += cargo;

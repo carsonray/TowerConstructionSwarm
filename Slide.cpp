@@ -8,11 +8,12 @@
 #include "Button.h"
 #include "TowerRobot.h"
 
-TowerRobot::Slide::Slide(double stepsPerBlock, double upperLimit, ScaledStepper stepper, Button limit) {
+TowerRobot::Slide::Slide(double stepsPerBlock, double upperLimit, ScaledStepper* stepper, Button* limit) {
 	this->stepsPerBlock = stepsPerBlock;
   this->upperLimit = upperLimit;
   this->stepper = stepper;
-  stepper.enableModeSwitch();
+  stepper->enableModeSwitch();
+  stepper->setMaxSpeed(convertToRaw(defMax));
   this->limit = limit;
 }
 
@@ -28,7 +29,7 @@ double TowerRobot::Slide::convertToRaw(double block) {
 
 //Gets distance to target position
 double TowerRobot::Slide::distanceToGo() {
-  return convertToBlock(stepper.distanceToGo());
+  return convertToBlock(stepper->distanceToGo());
 }
 
 //Waits until slide is not moving
@@ -41,12 +42,12 @@ void TowerRobot::Slide::wait() {
 
 //Returns current block position
 double TowerRobot::Slide::currentPosition() {
-  return convertToBlock(stepper.currentPosition());
+  return convertToBlock(stepper->currentPosition());
 }
 
 //Returns block target position
 double TowerRobot::Slide::targetPosition() {
-  return convertToBlock(stepper.targetPosition());
+  return convertToBlock(stepper->targetPosition());
 }
 
 //Whether slide is at a limit
@@ -56,13 +57,14 @@ bool TowerRobot::Slide::checkLimits() {
 
 //Whether slide is at physical limit switch
 bool TowerRobot::Slide::checkLowerLimit() {
-  if (limit.curr()) {
+  bool pressed = false;
+  if (limit->state()) {
     //Sets to home position
-    stepper.setPosition(homePos);
-    return true;
-  } else {
-    return false;
+    stepper->setCurrentPosition(homePos);
+    pressed = true;
   }
+  limit->update();
+  return pressed;
 }
 
 //Whether slide is at upper block limit
@@ -78,10 +80,14 @@ bool TowerRobot::Slide::checkUpperLimit() {
 
 //Runs slide step
 bool TowerRobot::Slide::run() {
-  if (checkLimits()) {
+  //Gets current stepper speed
+  double currSpeed = convertToBlock(stepper.speed());
+
+  //Checks to see if stepper is going to run through limit
+  if ((checkLowerLimit() && (currSpeed < 0)) || (checkUpperLimit() && (currSpeed > 0))) {
     return false;
   } else {
-    return stepper.run();
+    return stepper->run();
   }
 }
 
@@ -89,10 +95,10 @@ bool TowerRobot::Slide::run() {
 void TowerRobot::Slide::stop(bool brake) {
   if (brake) {
     //Soft stop
-    stepper.stop();
+    stepper->stop();
   } else {
     //Hard stop
-    stepper.setSpeed(0);
+    stepper->setSpeed(0);
   }
 }
 
@@ -105,8 +111,11 @@ void TowerRobot::Slide::home(double homePos) {
   this->homePos = homePos;
 
   //Uses constant slow speed
-  stepper.setAcceleration(0);
-  stepper.setSpeed(convertToRaw(homeSpeed));
+  stepper->setSpeed(convertToRaw(homeSpeed));
+
+  while (!checkLimits()) {
+    stepper->runSpeed();
+  }
 }
 
 //Moves to block position
@@ -122,9 +131,9 @@ void TowerRobot::Slide::moveToBlock(double blockPos, double accel, double max) {
   }
 
   //Sets stepper settings
-  stepper.setAcceleration(accel);
-  stepper.setMaxSpeed(max);
-  stepper.moveTo(convertToRaw(blockPos));
+  stepper->setAcceleration(accel);
+  stepper->setMaxSpeed(max);
+  stepper->moveTo(convertToRaw(blockPos));
 }
 
 //Moves relatively by blocks

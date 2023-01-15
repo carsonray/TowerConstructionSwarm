@@ -8,10 +8,10 @@
 #include "TowerRobot.h"
 #include "Utils.h"
 
-TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper stepper) {
+TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper* stepper) {
 	this->stepsPerDegree = stepsPerDegree;
   this->stepper = stepper;
-  stepper.enableModeSwitch();
+  stepper->enableModeSwitch();
 }
 
 //Converts raw steps to degrees
@@ -31,7 +31,7 @@ double TowerRobot::Turret::localize(double globalAngle) {
 
 //Gets distance to target position
 double TowerRobot::Turret::distanceToGo() {
-  return convertToDegree(stepper.distanceToGo());
+  return convertToDegree(stepper->distanceToGo());
 }
 
 //Waits until Turret is not moving
@@ -47,7 +47,7 @@ double TowerRobot::Turret::currentPosition() {
   return currentPosition(true);
 }
 double TowerRobot::Turret::currentPosition(bool global) {
-  double rawPos = convertToDegree(stepper.currentPosition());
+  double rawPos = convertToDegree(stepper->currentPosition());
 
   if (!global) {
     rawPos = localize(rawPos);
@@ -61,7 +61,7 @@ double TowerRobot::Turret::targetPosition() {
   return targetPosition(true);
 }
 double TowerRobot::Turret::targetPosition(bool global) {
-  double rawPos = convertToDegree(stepper.targetPosition());
+  double rawPos = convertToDegree(stepper->targetPosition());
 
   if (!global) {
     rawPos = localize(rawPos);
@@ -74,19 +74,28 @@ int TowerRobot::Turret::getTowerPos() {
   return currTowerPos;
 }
 
+//Gets next tower traveling from start to end
+int TowerRobot::Turret::nextTower(int start, int end) {
+  //Gets shortest direction of travel
+  int dir = Utils::sign(localize(towerPos[end]) - localize(towerPos[start]));
+
+  //Increments tower position
+  return (start + dir)%4;
+}
+
 //Runs Turret step
 bool TowerRobot::Turret::run() {
-  return stepper.run();
+  return stepper->run();
 }
 
 //Stops Turret
 void TowerRobot::Turret::stop(bool brake) {
   if (brake) {
     //Soft stop
-    stepper.stop();
+    stepper->stop();
   } else {
     //Hard stop
-    stepper.setSpeed(0);
+    stepper->setSpeed(0);
   }
 }
 
@@ -101,24 +110,24 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
   }
 
   //Sets stepper settings
-  stepper.setAcceleration(accel);
-  stepper.setMaxSpeed(max);
-  stepper.moveTo(convertToRaw(degree));
+  stepper->setAcceleration(accel);
+  stepper->setMaxSpeed(max);
+  stepper->moveTo(convertToRaw(degree));
 }
 
 //Moves relatively by blocks
 void TowerRobot::Turret::moveBy(double relDegree) {
-  moveByBlock(relDegree, defAccel, defMax);
+  moveBy(relDegree, defAccel, defMax);
 }
 void TowerRobot::Turret::moveBy(double relDegree, double accel, double max) {
-  moveToBlock(currentPosition() + relDegree, accel, max);
+  moveTo(true, currentPosition() + relDegree, accel, max);
 }
 
 //Moves to tower position
 void TowerRobot::Turret::moveToTower(int tower) {
   moveToTower(tower, defAccel, defMax);
 }
-void TowerRobot::Turret::moveToTower(int tower, double accel, doubel max) {
+void TowerRobot::Turret::moveToTower(int tower, double accel, double max) {
   moveTo(false, towerPos[tower], accel, max);
 
   //Sets tower position
