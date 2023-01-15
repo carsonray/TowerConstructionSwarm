@@ -106,7 +106,7 @@ void TowerRobot::Turret::moveTo(bool global, double degree) {
 void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double max) {
   //If local target, add to local position
   if (!global) {
-    degree = currentPosition() - currentPosition(false) + degree;
+    degree = currentPosition() + localize(degree) - currentPosition(false);
   }
 
   //Sets stepper settings

@@ -50,9 +50,12 @@ double TowerRobot::Slide::targetPosition() {
   return convertToBlock(stepper->targetPosition());
 }
 
-//Whether slide is at a limit
+//Whether slide will run through limits
 bool TowerRobot::Slide::checkLimits() {
-  return (checkLowerLimit() || checkUpperLimit());
+  //Gets current stepper speed
+  double currSpeed = convertToBlock(stepper->speed());
+
+  return (checkLowerLimit() && (currSpeed < 0)) || (checkUpperLimit() && (currSpeed > 0));
 }
 
 //Whether slide is at physical limit switch
@@ -80,11 +83,7 @@ bool TowerRobot::Slide::checkUpperLimit() {
 
 //Runs slide step
 bool TowerRobot::Slide::run() {
-  //Gets current stepper speed
-  double currSpeed = convertToBlock(stepper->speed());
-
-  //Checks to see if stepper is going to run through limit
-  if ((checkLowerLimit() && (currSpeed < 0)) || (checkUpperLimit() && (currSpeed > 0))) {
+  if (checkLimits()) {
     return false;
   } else {
     return stepper->run();

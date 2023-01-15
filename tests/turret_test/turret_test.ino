@@ -3,7 +3,7 @@
 #include <ScaledStepper.h>
 
 // Define parameters
-const int stepsPerDegree = 200*142/32/360;
+const double stepsPerDegree = -200.0*142/32/360;
 
 const int stepPin = 6;
 const int dirPin = 7;

@@ -77,10 +77,10 @@ class TowerRobot {
 				ScaledStepper* stepper;
 
 				//Default acceleration
-				double defAccel = 2;
+				double defAccel = 20;
 
 				//Default max speed
-				double defMax = 45;
+				double defMax = 180;
 
 				//Current tower position
 				int currTowerPos = 0;
@@ -145,7 +145,7 @@ class TowerRobot {
 				unsigned long waitTime = 0;
 
 				//Positions
-				int gripPos[2] = {40, 160};
+				int gripPos[2] = {40, 185};
 			public:
 				Gripper(int gripPin);
 
