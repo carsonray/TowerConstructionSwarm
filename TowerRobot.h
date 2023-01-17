@@ -35,10 +35,10 @@ class TowerRobot {
 				double upperLimit;
 
 				//Default acceleration
-				double defAccel = 1;
+				double defAccel = 0.5;
 
 				//Default max speed
-				double defMax = 10;
+				double defMax = 3;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
@@ -77,10 +77,10 @@ class TowerRobot {
 				ScaledStepper* stepper;
 
 				//Default acceleration
-				double defAccel = 20;
+				double defAccel = 10;
 
 				//Default max speed
-				double defMax = 180;
+				double defMax = 90;
 
 				//Current tower position
 				int currTowerPos = 0;

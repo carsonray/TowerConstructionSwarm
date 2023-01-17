@@ -12,6 +12,7 @@ TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper* stepper) {
 	this->stepsPerDegree = stepsPerDegree;
   this->stepper = stepper;
   stepper->enableModeSwitch();
+  stepper->setMaxSpeed(convertToRaw(defMax));
 }
 
 //Converts raw steps to degrees
@@ -37,9 +38,7 @@ double TowerRobot::Turret::distanceToGo() {
 //Waits until Turret is not moving
 void TowerRobot::Turret::wait() {
   //Runs Turret while waiting to stop
-  while (run()) {
-    
-  }
+  stepper->runToPosition();
 }
 
 //Returns current block position
@@ -110,8 +109,8 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
   }
 
   //Sets stepper settings
-  stepper->setAcceleration(accel);
-  stepper->setMaxSpeed(max);
+  stepper->setAcceleration(convertToRaw(accel));
+  stepper->setMaxSpeed(convertToRaw(max));
   stepper->moveTo(convertToRaw(degree));
 }
 

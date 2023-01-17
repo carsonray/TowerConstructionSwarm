@@ -35,8 +35,8 @@ double TowerRobot::Slide::distanceToGo() {
 //Waits until slide is not moving
 void TowerRobot::Slide::wait() {
   //Runs slide while waiting to stop
-  while (run()) {
-    
+  while(run()) {
+
   }
 }
 
@@ -53,17 +53,22 @@ double TowerRobot::Slide::targetPosition() {
 //Whether slide will run through limits
 bool TowerRobot::Slide::checkLimits() {
   //Gets current stepper speed
-  double currSpeed = convertToBlock(stepper->speed());
+  double currSpeed = stepper->speed();
 
-  return (checkLowerLimit() && (currSpeed < 0)) || (checkUpperLimit() && (currSpeed > 0));
+  //Checks limits
+  bool lower = checkLowerLimit();
+  bool upper = checkUpperLimit();
+
+  //If lower limit is tripped going down or upper limit is tripped going up
+  return (lower && (currSpeed < 0)) || (upper && (currSpeed > 0));
 }
 
 //Whether slide is at physical limit switch
 bool TowerRobot::Slide::checkLowerLimit() {
   bool pressed = false;
-  if (limit->state()) {
+  if (limit->changeTo(true)) {
     //Sets to home position
-    stepper->setCurrentPosition(homePos);
+    //stepper->setCurrentPosition(convertToRaw(homePos));
     pressed = true;
   }
   limit->update();
@@ -72,13 +77,7 @@ bool TowerRobot::Slide::checkLowerLimit() {
 
 //Whether slide is at upper block limit
 bool TowerRobot::Slide::checkUpperLimit() {
-  if (currentPosition() >= upperLimit) {
-    //Moves to upper limit
-    moveToBlock(upperLimit);
-    return true;
-  } else {
-    return false;
-  }
+  return (currentPosition() >= upperLimit);
 }
 
 //Runs slide step
@@ -115,6 +114,7 @@ void TowerRobot::Slide::home(double homePos) {
   while (!checkLimits()) {
     stepper->runSpeed();
   }
+  stepper->setCurrentPosition(convertToRaw(homePos));
 }
 
 //Moves to block position
@@ -130,8 +130,8 @@ void TowerRobot::Slide::moveToBlock(double blockPos, double accel, double max) {
   }
 
   //Sets stepper settings
-  stepper->setAcceleration(accel);
-  stepper->setMaxSpeed(max);
+  stepper->setAcceleration(convertToRaw(accel));
+  stepper->setMaxSpeed(convertToRaw(max));
   stepper->moveTo(convertToRaw(blockPos));
 }
 

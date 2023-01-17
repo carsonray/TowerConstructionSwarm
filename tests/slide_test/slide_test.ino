@@ -4,7 +4,7 @@
 #include <Button.h>
 
 // Define parameters
-const double stepsPerBlock = -200.0/90*50;
+const double stepsPerBlock = -200.0/90*27;
 const double upperLimit = 6;
 
 #define stepPin 12
@@ -20,15 +20,15 @@ ScaledStepper stepper = ScaledStepper(stepPin, dirPin, modePins[0], modePins[1],
 Button limit = Button(limitPin);
 
 // Creates a slide instance
-//TowerRobot::Slide slide = TowerRobot::Slide(stepsPerBlock, upperLimit, &stepper, &limit);
+TowerRobot::Slide slide = TowerRobot::Slide(stepsPerBlock, upperLimit, &stepper, &limit);
 
 void setup() {
-  Serial.begin(9600);
+  
 }
 
 void loop() {
-  slide.home(0);
-  slide.moveToBlock(1);
+  slide.home();
+  slide.moveToBlock(3);
   slide.wait();
-  delay(10000);
+  delay(5000);
 }
