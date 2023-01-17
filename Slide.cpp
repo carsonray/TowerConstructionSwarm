@@ -53,7 +53,7 @@ double TowerRobot::Slide::targetPosition() {
 //Whether slide will run through limits
 bool TowerRobot::Slide::checkLimits() {
   //Gets current stepper speed
-  double currSpeed = stepper->speed();
+  double currSpeed = convertToBlock(stepper->speed());
 
   //Checks limits
   bool lower = checkLowerLimit();
@@ -66,9 +66,8 @@ bool TowerRobot::Slide::checkLimits() {
 //Whether slide is at physical limit switch
 bool TowerRobot::Slide::checkLowerLimit() {
   bool pressed = false;
+  //Whether limit switch changes state to pressed
   if (limit->changeTo(true)) {
-    //Sets to home position
-    //stepper->setCurrentPosition(convertToRaw(homePos));
     pressed = true;
   }
   limit->update();
@@ -114,6 +113,8 @@ void TowerRobot::Slide::home(double homePos) {
   while (!checkLimits()) {
     stepper->runSpeed();
   }
+
+  //Homes when limit is reached
   stepper->setCurrentPosition(convertToRaw(homePos));
 }
 
