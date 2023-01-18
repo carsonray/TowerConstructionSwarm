@@ -139,10 +139,10 @@ void TowerRobot::Turret::moveToCarry(int tower) {
 }
 void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   //Difference to target position
-  double diff = towerPos[tower] - currentPosition(false);
+  double diff = localize(towerPos[tower]) - currentPosition(false);
 
   //Corrects target position with carry offset
-  double target = towerPos[tower] - carryOffset * Utils::sign(diff);
+  double target = towerPos[tower] - (carryOffset * Utils::sign(diff));
   
   moveTo(false, target, accel, max);
 

@@ -77,10 +77,10 @@ class TowerRobot {
 				ScaledStepper* stepper;
 
 				//Default acceleration
-				double defAccel = 10;
+				double defAccel = 30;
 
 				//Default max speed
-				double defMax = 90;
+				double defMax = 100;
 
 				//Current tower position
 				int currTowerPos = 0;
@@ -149,6 +149,8 @@ class TowerRobot {
 			public:
 				Gripper(int gripPin);
 
+				void begin();
+
 				void open();
 				void close();
 
@@ -161,9 +163,12 @@ class TowerRobot {
 		};
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
 
+		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
+
 		void wait();
 
 		void home();
+		void home(double homePos);
 
 		void moveToBlock(int tower);
 		void moveToBlock(int tower, int blockNum);

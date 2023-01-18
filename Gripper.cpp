@@ -10,6 +10,10 @@
 TowerRobot::Gripper::Gripper(int gripPin) {
   //Attaches servo
 	this->gripPin = gripPin;
+}
+
+//Attaches servo to pin
+void TowerRobot::Gripper::begin() {
   servo.attach(gripPin);
 }
 

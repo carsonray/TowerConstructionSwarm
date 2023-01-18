@@ -13,6 +13,14 @@ TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper) {
   this->gripper = gripper;
 }
 
+//Sets tower heights
+void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4) {
+  towerHeights[0] = tower1;
+  towerHeights[1] = tower2;
+  towerHeights[2] = tower3;
+  towerHeights[3] = tower4;
+}
+
 //Waits on all busy modules
 void TowerRobot::wait() {
   slide->wait();
@@ -22,8 +30,12 @@ void TowerRobot::wait() {
 
 //Homes robot
 void TowerRobot::home() {
+  home(0);
+}
+void TowerRobot::home(double homePos) {
+  gripper->begin();
   gripper->open();
-  slide->home();
+  slide->home(homePos);
   turret->moveTo(false, 0);
 }
 
@@ -51,8 +63,8 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     }
     
     //Loops through towers between current and target
-    for (int testPos = turret->getTowerPos(); testPos <= tower; testPos = turret->nextTower(testPos, tower)) {
-      if (slide->currentPosition() > towerHeights[testPos]) {
+    for (int testPos = turret->getTowerPos(); testPos != tower; testPos = turret->nextTower(testPos, tower)) {
+      if (slide->currentPosition() < towerHeights[testPos]) {
         //If current position will not clear tower
 
         //Moves to height of obstructing tower + margin
@@ -69,7 +81,6 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     //Moves final step to tower and block position
     turret->moveToTower(tower);
     turret->wait();
-
     slide->moveToBlock(blockNum);
     slide->wait();
   }
@@ -82,27 +93,31 @@ void TowerRobot::load(int tower) {
 }
 void TowerRobot::load(int tower, int blockNum) {
   //Moves to correct tower and block
-  moveToBlock(tower, blockNum);
+  if (blockNum != 0) {
+    moveToBlock(tower, blockNum);
 
-  //Closes gripper
-  gripper->close();
-  gripper->wait();
+    //Closes gripper
+    gripper->close();
+    gripper->wait();
 
-  //Updates tower height and cargo
-  cargo = towerHeights[tower] - blockNum;
-  towerHeights[tower] -= cargo;
+    //Updates tower height and cargo
+    cargo = towerHeights[tower] - blockNum;
+    towerHeights[tower] -= cargo;
+  }
 }
 
 //Unloads block(s) on top of tower
 void TowerRobot::unload(int tower) {
-  //Moves to top of tower
-  moveToBlock(tower);
+  if (cargo > 0) {
+    //Moves to top of tower
+    moveToBlock(tower);
 
-  //Opens gripper
-  gripper->open();
-  gripper->wait();
+    //Opens gripper
+    gripper->open();
+    gripper->wait();
 
-  //Updates tower height and cargo
-  towerHeights[tower] += cargo;
-  cargo = 0;
+    //Updates tower height and cargo
+    towerHeights[tower] += cargo;
+    cargo = 0;
+  }
 }

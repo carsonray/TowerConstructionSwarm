@@ -30,11 +30,11 @@ void loop() {
     }
   }
 
-  /*if (openState) {
+  if (openState) {
     servo.write(40);
   } else {
-    servo.write(185);
-  }*/
+    servo.write(160);
+  }
 
   button.update();
 }
