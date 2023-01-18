@@ -2,8 +2,8 @@
 #include <AccelStepper.h>
 
 // Define pin connections
-const int dirPin = 3;
-const int stepPin = 2;
+const int dirPin = 13;
+const int stepPin = 12;
 
 // Steps per revolution
 const int STEPS_PER_REV = 200;
