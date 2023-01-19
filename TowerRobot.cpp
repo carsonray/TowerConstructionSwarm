@@ -21,13 +21,6 @@ void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4)
   towerHeights[3] = tower4;
 }
 
-//Waits on all busy modules
-void TowerRobot::wait() {
-  slide->wait();
-  turret->wait();
-  gripper->wait();
-}
-
 //Homes robot
 void TowerRobot::home() {
   home(0);
@@ -37,6 +30,12 @@ void TowerRobot::home(double homePos) {
   gripper->open();
   slide->home(homePos);
   turret->moveTo(false, 0);
+}
+
+void TowerRobot::waitSlideTurret() {
+  while (slide->run() || turret->run()) {
+
+  }
 }
 
 //Moves to tower and block position
@@ -54,27 +53,20 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     //Moves to correct position
     slide->moveToBlock(blockNum);
     turret->moveToTower(tower);
-    slide->wait();
-    turret->wait();
+    waitSlideTurret();
   } else {
-    //Clears current tower
-    if (slide->currentPosition() <= towerHeights[turret->getTowerPos()]) {
-      slide->moveByBlock(clearMargin);
-    }
-    
     //Loops through towers between current and target
     for (int testPos = turret->getTowerPos(); testPos != tower; testPos = turret->nextTower(testPos, tower)) {
-      if (slide->currentPosition() < towerHeights[testPos]) {
-        //If current position will not clear tower
-
+      //If current position will not clear tower
+      if (slide->currentPosition() < (towerHeights[testPos] + clearMargin)) {
         //Moves to height of obstructing tower + margin
-        slide->moveToBlock(towerHeights[turret->getTowerPos()] + clearMargin);
+        slide->moveToBlock(towerHeights[testPos] + clearMargin);
 
         //Moves to carry position next to tower
-        turret->moveToCarry(turret->getTowerPos());
+        if (testPos != turret->getTowerPos())
+          turret->moveToCarry(testPos);
 
-        slide->wait();
-        turret->wait();
+        waitSlideTurret();
       }
     }
 
@@ -93,7 +85,7 @@ void TowerRobot::load(int tower) {
 }
 void TowerRobot::load(int tower, int blockNum) {
   //Moves to correct tower and block
-  if (blockNum != 0) {
+  if (blockNum >= 0) {
     moveToBlock(tower, blockNum);
 
     //Closes gripper

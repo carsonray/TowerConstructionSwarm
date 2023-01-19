@@ -79,7 +79,16 @@ int TowerRobot::Turret::nextTower(int start, int end) {
   int dir = Utils::sign(localize(towerPos[end]) - localize(towerPos[start]));
 
   //Increments tower position
-  return (start + dir)%4;
+  int newTower = start + dir;
+
+  // Wraps around array positions
+  if (newTower < 0) {
+    newTower += 4;
+  } else if (newTower >= 4) {
+    newTower -= 4;
+  }
+
+  return newTower;
 }
 
 //Runs Turret step

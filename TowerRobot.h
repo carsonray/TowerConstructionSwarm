@@ -35,10 +35,10 @@ class TowerRobot {
 				double upperLimit;
 
 				//Default acceleration
-				double defAccel = 0.5;
+				double defAccel = 1;
 
 				//Default max speed
-				double defMax = 3;
+				double defMax = 3.5;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
@@ -165,7 +165,7 @@ class TowerRobot {
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 
-		void wait();
+		void waitSlideTurret();
 
 		void home();
 		void home(double homePos);
@@ -190,7 +190,7 @@ class TowerRobot {
 		int cargo = 0;
 
 		//Margin to clear blocks after loading
-		double clearMargin = 0.1;
+		double clearMargin = 0.2;
 };
 
 #endif

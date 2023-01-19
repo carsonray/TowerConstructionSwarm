@@ -22,7 +22,7 @@ Button limit = Button(limitPin);
 // Creates a slide instance
 TowerRobot::Slide slide = TowerRobot::Slide(stepsPerBlock, upperLimit, &slideStepper, &limit);
 
-// Turrent parameters
+// Turret parameters
 const double stepsPerDegree = -200.0*142/32/360;
 
 const int turretStep = 6;
@@ -30,7 +30,7 @@ const int turretDir = 7;
 const int turretMode[3] = {3, 4, 5};
 
 // Creates scaled stepper
-ScaledStepper turretStepper = ScaledStepper(slideStep, slideDir, slideMode[0], slideMode[1], slideMode[2]);
+ScaledStepper turretStepper = ScaledStepper(turretStep, turretDir, turretMode[0], turretMode[1], turretMode[2]);
 
 // Creates a turret instance
 TowerRobot::Turret turret = TowerRobot::Turret(stepsPerDegree, &turretStepper);
