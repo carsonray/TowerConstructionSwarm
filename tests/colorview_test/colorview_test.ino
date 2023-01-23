@@ -64,7 +64,7 @@ void setup() {
 // Processing example colorview.pde can work with this kind of data too, but It requires manual conversion to 
 // [0-255] RGB value. You can still uncomments parts of colorview.pde and play with clear value.
 void loop() {
-  float red, green, blue;
+  /*float red, green, blue;
   
   tcs.setInterrupt(false);  // turn on LED
 
@@ -76,30 +76,30 @@ void loop() {
 
   Serial.print("R:\t"); Serial.print(int(red)); 
   Serial.print("\tG:\t"); Serial.print(int(green)); 
-  Serial.print("\tB:\t"); Serial.print(int(blue));
+  Serial.print("\tB:\t"); Serial.print(int(blue));*/
 
 //  Serial.print("\t");
 //  Serial.print((int)red, HEX); Serial.print((int)green, HEX); Serial.print((int)blue, HEX);
   Serial.print("\n");
 
-//  uint16_t red, green, blue, clear;
-//  
-//  tcs.setInterrupt(false);  // turn on LED
-//
-//  delay(60);  // takes 50ms to read
-//
-//  tcs.getRawData(&red, &green, &blue, &clear);
-//  
-//  tcs.setInterrupt(true);  // turn off LED
-//
-//  Serial.print("C:\t"); Serial.print(int(clear)); 
-//  Serial.print("R:\t"); Serial.print(int(red)); 
-//  Serial.print("\tG:\t"); Serial.print(int(green)); 
-//  Serial.print("\tB:\t"); Serial.print(int(blue));
-//  Serial.println();
+  uint16_t red, green, blue, clear;
+ 
+ tcs.setInterrupt(false);  // turn on LED
+
+  delay(60);  // takes 50ms to read
+
+ tcs.getRawData(&red, &green, &blue, &clear);
+ 
+ tcs.setInterrupt(true);  // turn off LED
+ 
+  Serial.print("C:\t"); Serial.print(int(clear)); 
+  Serial.print("\tR:\t"); Serial.print(int(red)); 
+  Serial.print("\tG:\t"); Serial.print(int(green)); 
+  Serial.print("\tB:\t"); Serial.print(int(blue));
+  Serial.println();
 
 
-#if defined(ARDUINO_ARCH_ESP32)
+/*#if defined(ARDUINO_ARCH_ESP32)
   ledcWrite(1, gammatable[(int)red]);
   ledcWrite(2, gammatable[(int)green]*0.25);
   ledcWrite(3, gammatable[(int)blue]*0.5);
@@ -107,5 +107,5 @@ void loop() {
   analogWrite(redpin, gammatable[(int)red]);
   analogWrite(greenpin, gammatable[(int)green]*0.25);
   analogWrite(bluepin, gammatable[(int)blue]*0.5);
-#endif
+#endif*/
 }

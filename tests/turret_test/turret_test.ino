@@ -23,10 +23,8 @@ void setup() {
 }
 
 void loop() {
-    while (true) {
-        turret.moveToCarry(towerNum);
-        turret.wait();
-        delay(10000);
-        towerNum = (towerNum + 1)%4;
-    }
+    turret.moveToTower(towerNum);
+    turret.wait();
+    delay(10000);
+    towerNum = (towerNum + 1)%4;
 }

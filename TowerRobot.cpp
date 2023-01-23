@@ -33,8 +33,11 @@ void TowerRobot::home(double homePos) {
 }
 
 void TowerRobot::waitSlideTurret() {
-  while (slide->run() || turret->run()) {
-
+  bool slideRun = true;
+  bool turretRun = true;
+  while (slideRun || turretRun) {
+    slideRun = slide->run();
+    turretRun = turret->run();
   }
 }
 
@@ -101,8 +104,8 @@ void TowerRobot::load(int tower, int blockNum) {
 //Unloads block(s) on top of tower
 void TowerRobot::unload(int tower) {
   if (cargo > 0) {
-    //Moves to top of tower
-    moveToBlock(tower);
+    //Moves one block above top of tower
+    moveToBlock(tower, towerHeights[tower]);
 
     //Opens gripper
     gripper->open();
