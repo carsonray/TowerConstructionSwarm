@@ -58,24 +58,44 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     turret->moveToTower(tower);
     waitSlideTurret();
   } else {
-    //Loops through towers between current and target
-    for (int testPos = turret->getTowerPos(); testPos != tower; testPos = turret->nextTower(testPos, tower)) {
-      //If current position will not clear tower
-      if (slide->currentPosition() < (towerHeights[testPos] + clearMargin)) {
-        //Moves to height of obstructing tower + margin
-        slide->moveToBlock(towerHeights[testPos] + clearMargin);
+    //Corrects block number to be greater than tower height
+    if (blockNum < towerHeights[tower]) {
+      blockNum = towerHeights[tower];
+    }
+    
+    //If not at correct tower
+    if (turret->getTowerPos() != tower) {
+      //Loops through towers between current and target
+      int testPos = turret->getTowerPos();
+      while (true) {
+        //If current position will not clear tower
+        if (slide->currentPosition() < (towerHeights[testPos] + clearMargin)) {
+          //Moves to height of obstructing tower + margin
+          slide->moveToBlock(towerHeights[testPos] + clearMargin);
 
-        //Moves to carry position next to tower
-        if (testPos != turret->getTowerPos())
-          turret->moveToCarry(testPos);
+          //Moves to carry position next to tower (if not first tower)
+          if (testPos != turret->getTowerPos()) {
+            turret->moveToCarry(testPos);
+          }
 
-        waitSlideTurret();
+          waitSlideTurret();
+        }
+
+        //If just checked target tower, break
+        if (testPos == tower) {
+          break;
+        }
+
+        //Moves to next tower position
+        testPos = turret->nextTower(testPos, tower);
       }
+
+      //Rotates final step to tower
+      turret->moveToTower(tower);
+      turret->wait();
     }
 
-    //Moves final step to tower and block position
-    turret->moveToTower(tower);
-    turret->wait();
+    //Moves to correct block position
     slide->moveToBlock(blockNum);
     slide->wait();
   }

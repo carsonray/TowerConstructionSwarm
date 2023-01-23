@@ -45,8 +45,9 @@ TowerRobot::Gripper gripper = TowerRobot::Gripper(gripPin);
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper);
 
 void setup() {
+  Serial.begin(9600);
   robot.setTowerHeights(4, 0, 0, 0);
-  robot.home();
+  //robot.home();
 }
 
 void loop() {

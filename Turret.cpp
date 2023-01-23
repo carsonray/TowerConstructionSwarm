@@ -38,7 +38,9 @@ double TowerRobot::Turret::distanceToGo() {
 //Waits until Turret is not moving
 void TowerRobot::Turret::wait() {
   //Runs Turret while waiting to stop
-  stepper->runToPosition();
+  while (run()) {
+    
+  }
 }
 
 //Returns current block position
@@ -93,6 +95,7 @@ int TowerRobot::Turret::nextTower(int start, int end) {
 
 //Runs Turret step
 bool TowerRobot::Turret::run() {
+  Serial.println(currentPosition());
   return stepper->run();
 }
 
