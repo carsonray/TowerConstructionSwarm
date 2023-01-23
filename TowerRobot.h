@@ -75,6 +75,9 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
+				//Correction for gear slop
+				double gearCorrect = 10;
+
 				//Ring drive stepper
 				ScaledStepper* stepper;
 
