@@ -13,6 +13,10 @@ TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper) {
   this->gripper = gripper;
 }
 
+TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor) : TowerRobot(slide, turret, gripper) {
+  this->colorSensor = colorSensor;
+}
+
 //Sets tower heights
 void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4) {
   towerHeights[0] = tower1;
@@ -28,8 +32,9 @@ void TowerRobot::home() {
 void TowerRobot::home(double homePos) {
   gripper->begin();
   gripper->open();
-  slide->home(homePos);
   turret->moveTo(false, 0);
+  colorSensor.begin();
+  slide->home(homePos);
 }
 
 void TowerRobot::waitSlideTurret() {
@@ -87,7 +92,7 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
         }
 
         //Moves to next tower position
-        testPos = turret->nextTower(testPos, tower);
+        testPos = turret->nextTowerTo(tower);
       }
 
       //Rotates final step to tower
@@ -135,4 +140,13 @@ void TowerRobot::unload(int tower) {
     towerHeights[tower] += cargo;
     cargo = 0;
   }
+}
+
+//Scans color of particular block
+int TowerRobot::scanBlock(int tower, int blockNum) {
+  //Moves to tower clockwise from target to align color sensor with target
+  moveToBlock(turret->nextTower(tower, 1), blockNum);
+
+  //Gets color of block
+  return colorSensor->getBlockColor();
 }

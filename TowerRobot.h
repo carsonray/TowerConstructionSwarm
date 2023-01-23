@@ -115,7 +115,11 @@ class TowerRobot {
 
 				int getTowerPos();
 
-				int nextTower(int start, int end);
+				int nextTower(int dir);
+				int nextTower(int curr, int dir);
+
+				int nextTowerTo(int target);
+				int nextTowerTo(int curr, int target);
 
 				bool run();
 				void stop(bool brake);
@@ -194,6 +198,7 @@ class TowerRobot {
 		};
 
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
+		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor);
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 
@@ -210,6 +215,7 @@ class TowerRobot {
 
 		void unload(int tower);
 
+		int scanBlock(int tower, int blockNum);
 	private:
 		Slide* slide;
 		Turret* turret;

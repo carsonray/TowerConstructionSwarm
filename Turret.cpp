@@ -71,21 +71,23 @@ double TowerRobot::Turret::targetPosition(bool global) {
   return rawPos;
 }
 
+//Gets current tower position
 int TowerRobot::Turret::getTowerPos() {
   return currTowerPos;
 }
 
+//Gets number of tower positions
 int TowerRobot::Turret::numPos() {
   return sizeof(towerPos)/sizeof(towerPos[0]);
 }
 
-//Gets next tower traveling from start to end
-int TowerRobot::Turret::nextTower(int start, int end) {
-  //Gets shortest direction of travel
-  int dir = Utils::sign(localize(towerPos[end] - towerPos[start]));
-
+//Gets next tower in direction
+int TowerRobot::Turret::nextTower(int dir) {
+  return nextTower(currTowerPos, dir);
+}
+int TowerRobot::Turret::nextTower(int curr, int dir) {
   //Increments tower position
-  int newTower = start + dir;
+  int newTower = curr + dir;
 
   // Wraps around array positions
   int num = numPos();
@@ -96,6 +98,16 @@ int TowerRobot::Turret::nextTower(int start, int end) {
   }
 
   return newTower;
+}
+
+
+//Gets next tower traveling to target
+int TowerRobot::Turret::nextTowerTo(int target) {
+  return nextTowerTo(currTowerPos, target);
+}
+int TowerRobot::Turret::nextTowerTo(int curr, int target) {
+  //Gets next tower in shortest direction of travel
+  return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[currTowerPos])));
 }
 
 //Runs Turret step
