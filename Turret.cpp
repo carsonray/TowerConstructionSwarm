@@ -78,7 +78,7 @@ int TowerRobot::Turret::getTowerPos() {
 //Gets next tower traveling from start to end
 int TowerRobot::Turret::nextTower(int start, int end) {
   //Gets shortest direction of travel
-  int dir = Utils::sign(localize(towerPos[end]) - localize(towerPos[start]));
+  int dir = Utils::sign(localize(towerPos[end] - towerPos[start]));
 
   //Increments tower position
   int newTower = start + dir;
@@ -95,7 +95,6 @@ int TowerRobot::Turret::nextTower(int start, int end) {
 
 //Runs Turret step
 bool TowerRobot::Turret::run() {
-  Serial.println(currentPosition());
   return stepper->run();
 }
 
@@ -117,7 +116,7 @@ void TowerRobot::Turret::moveTo(bool global, double degree) {
 void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double max) {
   //If local target, add to local position
   if (!global) {
-    degree = currentPosition() + localize(degree) - currentPosition(false);
+    degree = currentPosition() + (localize(degree - currentPosition()));
   }
 
   //Sets stepper settings
@@ -151,7 +150,7 @@ void TowerRobot::Turret::moveToCarry(int tower) {
 }
 void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   //Difference to target position
-  double diff = localize(towerPos[tower]) - currentPosition(false);
+  double diff = localize(towerPos[tower] - currentPosition());
 
   //Corrects target position with carry offset
   double target = towerPos[tower] - (carryOffset * Utils::sign(diff));
