@@ -75,6 +75,10 @@ int TowerRobot::Turret::getTowerPos() {
   return currTowerPos;
 }
 
+int TowerRobot::Turret::numPos() {
+  return sizeof(towerPos)/sizeof(towerPos[0]);
+}
+
 //Gets next tower traveling from start to end
 int TowerRobot::Turret::nextTower(int start, int end) {
   //Gets shortest direction of travel
@@ -84,10 +88,11 @@ int TowerRobot::Turret::nextTower(int start, int end) {
   int newTower = start + dir;
 
   // Wraps around array positions
+  int num = numPos();
   if (newTower < 0) {
-    newTower += 4;
-  } else if (newTower >= 4) {
-    newTower -= 4;
+    newTower += num;
+  } else if (newTower >= num) {
+    newTower -= num;
   }
 
   return newTower;

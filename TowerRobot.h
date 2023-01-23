@@ -11,6 +11,8 @@
 #include "Servo.h"
 #include "Utils.h"
 #include "Button.h"
+#include <Wire.h>
+#include "Adafruit_TCS34725.h"
 
 class TowerRobot {
 	public:
@@ -95,6 +97,7 @@ class TowerRobot {
 				double convertToRaw(double degree);
 
 				double localize(double globalAngle);
+				int numPos();
 			public:
 				Turret(double stepsPerDegree, ScaledStepper* stepper);
 
@@ -161,7 +164,31 @@ class TowerRobot {
 
 				bool toggle();
 		};
-		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
+
+		class ColorSensor {
+			private:
+				//Color sensor object
+				Adafruit_TCS34725 tcs;
+
+				//Empty/block present threshold
+				int emptyThres = 240;
+
+				//Block color values (black, red, white, blue)
+				int blockColors[4][3] = {
+					{70, 104, 87},
+					{254, 119, 100},
+					{1386, 2558, 2175},
+					{0, 0, 0}
+				};
+
+				int numColors();
+			public:
+				ColorSensor();
+				bool begin();
+				void raw(int* r, int*g, int*b, int* c);
+				int getBlockColor();
+		}
+		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor);
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 
@@ -182,6 +209,7 @@ class TowerRobot {
 		Slide* slide;
 		Turret* turret;
 		Gripper* gripper;
+		ColorSensor* colorSensor;
 
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};
