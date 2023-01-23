@@ -171,24 +171,26 @@ class TowerRobot {
 				Adafruit_TCS34725 tcs;
 
 				//Empty/block present threshold
-				int emptyThres = 240;
+				int emptyThres = 50;
 
-				//Block color values (black, red, white, blue)
+				//Block color values (black, white, red, blue)
 				int blockColors[4][3] = {
-					{70, 104, 87},
-					{254, 119, 100},
-					{1386, 2558, 2175},
-					{0, 0, 0}
+					{46, 75, 63},
+					{1127, 2075, 1754},
+					{176, 79, 66},
+					{54, 184, 390}
 				};
 
 				int numColors();
 			public:
 				ColorSensor();
 				bool begin();
-				void raw(int* r, int*g, int*b, int* c);
+				void getRaw(bool led, int* r, int*g, int*b, int* c);
+				void getReflected(int* r, int*g, int*b, int* c);
 				int getBlockColor();
-		}
-		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor);
+		};
+
+		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 
