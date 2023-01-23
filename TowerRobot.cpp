@@ -33,7 +33,7 @@ void TowerRobot::home(double homePos) {
   gripper->begin();
   gripper->open();
   turret->moveTo(false, 0);
-  colorSensor.begin();
+  colorSensor->begin();
   slide->home(homePos);
 }
 
