@@ -53,6 +53,13 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(robot.scanBlock(0, 3));
-  exit(0);
+  for (int i = 0; i < 4; i++) {
+    int color = robot.scanBlock(0, i);
+    if (color == 3) {
+      robot.load(0, i);
+      robot.unload(1);
+      break;
+    }
+  }
+  while (true) {};
 }

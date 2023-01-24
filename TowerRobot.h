@@ -75,8 +75,11 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
+				//First direction that turret turns
+				int firstDir = 0;
+
 				//Correction for gear slop
-				double gearCorrect = 10;
+				double gearCorrect = 5;
 
 				//Ring drive stepper
 				ScaledStepper* stepper;
@@ -221,6 +224,9 @@ class TowerRobot {
 		Turret* turret;
 		Gripper* gripper;
 		ColorSensor* colorSensor;
+
+		//Whether color sensor is initialized
+		bool colorInit = false;
 
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};
