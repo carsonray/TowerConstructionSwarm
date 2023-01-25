@@ -9,8 +9,11 @@ const int stepPin = 6;
 const int dirPin = 7;
 const int modePins[3] = {3, 4, 5};
 
-
+//Target tower position
 int towerNum = 1;
+
+//Direction of movement
+int dir = 1;
 
 // Creates scaled stepper
 ScaledStepper stepper = ScaledStepper(stepPin, dirPin, modePins[0], modePins[1], modePins[2]);
@@ -19,12 +22,22 @@ ScaledStepper stepper = ScaledStepper(stepPin, dirPin, modePins[0], modePins[1],
 TowerRobot::Turret turret = TowerRobot::Turret(stepsPerDegree, &stepper);
 
 void setup() {
-  
+  Serial.begin(9600);
 }
 
 void loop() {
+    //Moves to next tower
     turret.moveToTower(towerNum);
     turret.wait();
-    delay(10000);
-    towerNum = (towerNum + 1)%4;
+    delay(5000);
+
+    //Changes direction if limit is reached
+    if ((dir > 0) && (towerNum == 3)) {
+      dir = -1;
+    } else if ((dir < 0) && (towerNum == 0)) {
+      dir = 1;
+    }
+
+    //Increments tower target in direction
+    towerNum+=dir;
 }
