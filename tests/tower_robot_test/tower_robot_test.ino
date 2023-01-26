@@ -27,7 +27,7 @@ const double stepsPerDegree = -200.0*142/32/360;
 
 const int turretStep = 6;
 const int turretDir = 7;
-const int turretMode[3] = {3, 4, 5};
+const int turretMode[3] = {1, 2, 4};
 
 // Creates scaled stepper
 ScaledStepper turretStepper = ScaledStepper(turretStep, turretDir, turretMode[0], turretMode[1], turretMode[2]);
@@ -36,7 +36,7 @@ ScaledStepper turretStepper = ScaledStepper(turretStep, turretDir, turretMode[0]
 TowerRobot::Turret turret = TowerRobot::Turret(stepsPerDegree, &turretStepper);
 
 //Gripper parameters
-#define gripPin 2
+#define gripPin 0
 
 //Creates gripper instance
 TowerRobot::Gripper gripper = TowerRobot::Gripper(gripPin);

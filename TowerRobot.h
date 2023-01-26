@@ -75,11 +75,11 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
-				//First direction that turret turns
-				int firstDir = 0;
-
 				//Correction for gear slop
-				double gearCorrect = 5;
+				double gearCorrect = 6;
+
+				//Whether position is corrected
+				bool correcting = false;
 
 				//Ring drive stepper
 				ScaledStepper* stepper;

@@ -2,7 +2,7 @@
 #include <Button.h>
 
 //Servo pin
-#define servoPin 2
+#define servoPin 0
 
 //Button pin
 #define buttonPin 8

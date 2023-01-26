@@ -7,10 +7,10 @@ const double stepsPerDegree = -200.0*142/32/360;
 
 const int stepPin = 6;
 const int dirPin = 7;
-const int modePins[3] = {3, 4, 5};
+const int modePins[3] = {1, 2, 4};
 
 //Target tower position
-int towerNum = 1;
+int towerNum = 0;
 
 //Direction of movement
 int dir = 1;

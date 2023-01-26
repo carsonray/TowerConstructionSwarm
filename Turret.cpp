@@ -136,14 +136,14 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
     degree = currentPosition() + (localize(degree - currentPosition()));
   }
 
-  //Sets first direction if not set
-  if (firstDir == 0) {
-    firstDir = Utils::sign(degree - currentPosition());
-  }
-
-  //Overshoots to correct for gear slop if moving opposite from first direction
-  if ((degree - currentPosition()) * firstDir < 0) {
-    degree -= gearCorrect*firstDir;
+  //Overshoots to correct for gear slop if moving counterclockwise
+  double diff = degree - currentPosition();
+  if (diff < 0 || (correcting && (diff == gearCorrect))) {
+    degree -= gearCorrect;
+    correcting = true;
+  } else if (degree - currentPosition() > 0) {
+    //Otherwise stops correcting
+    correcting = false;
   }
 
   //Sets stepper settings
