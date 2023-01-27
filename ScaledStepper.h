@@ -6,8 +6,8 @@
 #ifndef ScaledStepper_h
 #define ScaledStepper_h
 
-#include "Arduino.h"
-#include "AccelStepper.h"
+#include <Arduino.h>
+#include <AccelStepper.h>
 #include "Utils.h"
 
 class ScaledStepper : public AccelStepper {

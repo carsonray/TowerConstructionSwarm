@@ -3,8 +3,7 @@
   Created by Carson G. Ray, January 4 2022.
 */
 
-#include "Arduino.h"
-#include "AccelStepper.h"
+#include <Arduino.h>
 #include "TowerRobot.h"
 
 TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper) {

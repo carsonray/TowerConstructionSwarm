@@ -3,10 +3,10 @@
   Created by Carson G. Ray, January 4 2022.
 */
 
-#include "Arduino.h"
-#include "TowerRobot.h"
+#include <Arduino.h>
 #include <Wire.h>
-#include "Adafruit_TCS34725.h"
+#include <Adafruit_TCS34725.h>
+#include "TowerRobot.h"
 
 TowerRobot::ColorSensor::ColorSensor() {
     tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);

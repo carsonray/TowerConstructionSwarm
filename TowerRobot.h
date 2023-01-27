@@ -6,14 +6,16 @@
 #ifndef TowerRobot_h
 #define TowerRobot_h
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_TCS34725.h>
 #include "ScaledStepper.h"
-#include "Servo.h"
 #include "Utils.h"
 #include "Button.h"
-#include <Wire.h>
-#include "Adafruit_TCS34725.h"
-#include "IRremote.h"
+
+#define USE_IRREMOTE_HPP_AS_PLAIN_INCLUDE
+#include "IRremote.hpp"
 
 class TowerRobot {
 	public:

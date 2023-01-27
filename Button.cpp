@@ -4,7 +4,7 @@
   Released into the public domain.
 */
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "Button.h"
 
 //Sets button input
