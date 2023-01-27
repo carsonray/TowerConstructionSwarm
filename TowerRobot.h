@@ -211,64 +211,92 @@ class TowerRobot {
 				int id;
 				
 				//IR objects
-				IRsend send;
-				IRrecv recv;
+				IRsend irsend;
+				IRrecv irrecv;
 
-				//Current sending signal
-				long sendSignal = 0;
+				//Signal bitmap (key, command, data)
+				int bitMap[3] = {2, 8, 16};
 
-				//Current sending bits
-				int sendBits = 0;
-
-				//Current recieved signal
-				long recvSignal = 0;
-
-				//Current recieved bits
-				int recvBits = 0;
-
-				//Current unique signal code
-				int currUnique = 0;
-
-				//Time of last send
-				long lastSend = 0;
-				
-				//Minimum repeating signal interval
-				int minInterval = -1;
-
-				//Maximum repeating signal interval
-				int maxInterval = -1;
-
-				//Limit on number of signal repeats
-				int sendLimit = -1;
-
-				//Whether sending repeats are active
+				//Whether sending is active
 				bool sendActive = true;
 
-				//Whether signals for other targets are automatically relayed
+				//Current sending address
+				unsigned int sendAddress = 0;
+
+				//Current sending key
+				unsigned int sendKey = 0;
+				
+				//Current sending signal
+				unsigned long sendSignal = 0;
+
+				//Time of last send
+				unsigned long lastSend = 0;
+
+				//Current repeating interval
+				int currInterval = 0;
+				
+				//Minimum repeating signal interval
+				int minInterval = 0;
+
+				//Maximum repeating signal interval
+				int maxInterval = 0;
+
+				//Current signal repeats
+				int currRepeats = 0;
+
+				//Limit on number of signal repeats
+				int sendRepeats = 1;
+
+				//Whether receiving is active
+				bool recvActive = true;
+
+				//Whether recieved signal is availiable
+				bool recvExists = false;
+
+				//Whether recieved signal is cleared on read
+				bool recvClear = true;
+
+				//Current recieved address
+				unsigned int recvAddress = 0;
+
+				//Current recieved key
+				unsigned int recvKey = 0;
+
+				//Last recieved key
+				unsigned int prevRecvKey = 0;
+
+				//Current recieved command
+				unsigned int recvCommand = 0;
+
+				//Current recieved data
+				unsigned int recvData = 0;
+
+				//Whether signals for other addresses are automatically relayed
 				bool autoRelay = false;
-
-				long pack(int target, int command);
-				long pack(int target, int command, int data);
-
-				void unpack(long signal, int bits, int* target, int* command, int* data);
+				
+				void unpack(unsigned long signal);
 			public:
 				IRT(int id, int sendPin, int recvPin);
 
 				void begin();
 
-				void send(int target, int command);
-				void send(int target, int command, long data);
+				void send(unsigned int address, unsigned int command);
+				void send(unsigned int address, unsigned int command, unsigned int data);
 
-				void setSendRepeat(int interval);
-				void setSendRepeat(int minTime, int maxTime);
+				void setSendInterval(int interval);
+				void setSendInterval(int minTime, int maxTime);
 
-				void setSendLimit(int num);
+				void setSendRepeats(int repeats);
 				void setSendInterrupt(bool interrupted);
+				void resetSendRepeat();
 
-				bool receive(int*command, int*data);
-				bool receiveOnce(int*command, int*data);
+				bool receive(unsigned int*command, unsigned int*data);
+				bool receiveOnce(unsigned int*command, unsigned int*data);
 
 				void resumeReceive();
+
+				void setRecieveInterrupt(bool interrupted);
+				void setAutoClear(bool cleared);
 
 				void setAutoRelay(bool active);
 
