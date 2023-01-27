@@ -19,6 +19,12 @@ TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSens
   colorInit = true;
 }
 
+TowerRobot::TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor, IRT* irt) : TowerRobot(slide, turret, gripper, colorSensor) {
+  this->irt = irt;
+
+  irtInit = true;
+}
+
 
 //Sets tower heights
 void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4) {
@@ -30,7 +36,7 @@ void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4)
 
 //Homes robot
 void TowerRobot::home() {
-  home(0);
+  home(slide->getHomePos());
 }
 void TowerRobot::home(double homePos) {
   gripper->begin();

@@ -13,6 +13,7 @@
 #include "Button.h"
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
+#include "IRremote.h"
 
 class TowerRobot {
 	public:
@@ -31,7 +32,7 @@ class TowerRobot {
 				double homeSpeed = -0.2;
 
 				//Homing position
-				double homePos = 0;
+				double homePos = -0.1;
 
 				//Upper limit
 				double upperLimit;
@@ -62,6 +63,8 @@ class TowerRobot {
 
 				void home();
 				void home(double homePos);
+
+				double getHomePos();
 
 				void moveToBlock(double blockPos);
 				void moveToBlock(double blockPos, double accel, double max);
@@ -200,8 +203,19 @@ class TowerRobot {
 				int getBlockColor();
 		};
 
+		class IRT {
+			private:
+				int id;
+
+				IRsend send;
+				IRrecv recv;
+			public:
+				IRT(int id, int sendPin, int recvPin);
+		};
+
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor);
+		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor, IRT* irt);
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 
@@ -224,9 +238,13 @@ class TowerRobot {
 		Turret* turret;
 		Gripper* gripper;
 		ColorSensor* colorSensor;
+		IRT* irt;
 
 		//Whether color sensor is initialized
 		bool colorInit = false;
+
+		//Whether infrared tranciever is initialized
+		bool irtInit = false;
 
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};

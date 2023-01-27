@@ -118,6 +118,10 @@ void TowerRobot::Slide::home(double homePos) {
   stepper->setCurrentPosition(convertToRaw(homePos));
 }
 
+double TowerRobot::Slide::getHomePos() {
+  return homePos;
+}
+
 //Moves to block position
 void TowerRobot::Slide::moveToBlock(double blockPos) {
   moveToBlock(blockPos, defAccel, defMax);
