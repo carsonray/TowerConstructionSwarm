@@ -6,33 +6,15 @@
 #include <Arduino.h>
 #include "TowerRobot.h"
 
-#define USE_IRREMOTE_HPP_AS_PLAIN_INCLUDE
 #include <IRremote.hpp>
 
-//Disables send pin macro so it can be set in constructor
-#undef IR_SEND_PIN
-
-//Commands
-
-#define IR_POLL_STATUS 0x00
-#define IR_STATUS_WAITING 0x01
-#define IR_STATUS_READY 0x02
-
-#define IR_STOP 0xFF
-
-#define IR_TOWER_UPDATE 0x10
-
-#define IR_CLOSE_GRIP 0x20
-#define IR_OPEN_GRIP 0x21
-#define IR_TURRET_LEFT 0x22
-#define IR_TURRET_RIGHT 0x23
-#define IR_SLIDE_DOWN 0x24
-#define IR_SLIDE_UP 0x25
+//Disables send pin macro so it can be set on begin
+//#undef IR_SEND_PIN
 
 TowerRobot::IRT::IRT(int id, int sendPin, int recvPin) {
-    //Initializes ir send and recieve
-    irsend.setSendPin(sendPin);
-    irrecv = IRrecv(recvPin);
+    //Initializes ir send and recieve pins
+    this->sendPin = sendPin;
+    this->recvPin = recvPin;
 
     //Sets communication id
     this->id = id;
@@ -40,7 +22,9 @@ TowerRobot::IRT::IRT(int id, int sendPin, int recvPin) {
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
-  irrecv.enableIRIn();
+  IrSender.begin(DISABLE_LED_FEEDBACK);
+  //IrSender.setSendPin(sendPin);
+  IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK);
 }
 
 //Sends command without data
@@ -162,8 +146,8 @@ bool TowerRobot::IRT::receiveOnce(unsigned int*command, unsigned int*data) {
 void TowerRobot::IRT::setRecieveInterrupt(bool interrupted) {
   if (!recvActive && interrupted) {
     //Clears data if changed to active
-    irrecv.decode();
-    irrecv.resume();
+    IrReceiver.decode();
+    IrReceiver.resume();
   }
   recvActive = !interrupted;
 }
@@ -180,20 +164,22 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 //Updates sending and receiving actions
 void TowerRobot::IRT::update() {
   //Updates recieved signal
-  if (recvActive && irrecv.decode()) {
-    recvAddress = irrecv.decodedIRData.address;
-    unpack(irrecv.decodedIRData.command);
+  if (recvActive && IrReceiver.decode()) {
+    recvExists = true;
+    
+    recvAddress = IrReceiver.decodedIRData.address;
+    unpack(IrReceiver.decodedIRData.command);
 
     //Auto relays non-directed commands
     if ((recvAddress != id) && autoRelay) {
-      irsend.sendNEC(recvAddress, irrecv.decodedIRData.command, 1);
+      IrSender.sendNEC(recvAddress, IrReceiver.decodedIRData.command, 1);
     }
   }
 
   //Sends data
   if (sendActive) {
     if ((currRepeats <= sendRepeats) && ((millis() - lastSend) >= currInterval)) {
-      irsend.sendNEC(sendAddress, sendSignal, 1);
+      IrSender.sendNEC(sendAddress, sendSignal, 1);
 
       //Updates last send time
       lastSend = millis();
@@ -205,6 +191,6 @@ void TowerRobot::IRT::update() {
 
   //Resumes recieve cycle
   if (recvActive) {
-    irrecv.resume();
+    IrReceiver.resume();
   }
 }

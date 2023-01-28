@@ -7,18 +7,16 @@
  */
 
 
-#include <IRremote.h>
+#include <IRremote.hpp>
 
-IRsend irsend;
+#define IR_SEND_PIN 3
 
 void setup()
 {
+	IrSender.begin(ENABLE_LED_FEEDBACK);
 }
 
 void loop() {
-	for (int i = 0; i < 3; i++) {
-		irsend.sendRC5(4294967295, 32);
-		delay(40);
-	}
+	IrSender.sendNEC(0x00, 4294967295, 2);
 	delay(5000); //5 second delay between each signal burst
 }

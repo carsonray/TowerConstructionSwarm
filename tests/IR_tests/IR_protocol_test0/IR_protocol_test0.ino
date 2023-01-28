@@ -3,6 +3,8 @@
 /* Initialize IRT object */
 TowerRobot::IRT irt = TowerRobot::IRT(0, 3, 5);
 
+using namespace IRcommands;
+
 void setup(void) {
   Serial.begin(9600);
 

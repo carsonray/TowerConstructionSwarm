@@ -6,13 +6,9 @@
  * http://arcfn.com
  */
 
-#include <IRremote.h>
+#include <IRremote.hpp>
 
-int RECV_PIN = 11;
-
-IRrecv irrecv(RECV_PIN);
-
-decode_results results;
+#define RECV_PIN 11
 
 void setup()
 {
@@ -20,14 +16,14 @@ void setup()
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
   Serial.println("Enabling IRin");
-  irrecv.enableIRIn(); // Start the receiver
+  IrReceiver.begin(RECV_PIN, DISABLE_LED_FEEDBACK);
   Serial.println("Enabled IRin");
 }
 
 void loop() {
-  if (irrecv.decode(&results)) {
-    Serial.println(results.value, HEX);
-    irrecv.resume(); // Receive the next value
+  if (IrReceiver.decode()) {
+    Serial.println(IrReceiver.decodedIRData.command, HEX);
+    IrReceiver.resume(); // Receive the next value
   }
   delay(100);
 }
