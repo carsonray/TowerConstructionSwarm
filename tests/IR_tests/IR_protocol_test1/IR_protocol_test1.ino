@@ -1,7 +1,7 @@
 #include <TowerRobot.h>
 
 /* Initialize IRT object */
-TowerRobot::IRT irt = TowerRobot::IRT(1, 3, 5);
+TowerRobot::IRT irt = TowerRobot::IRT(1, 13, 5);
 
 using namespace IRcommands;
 
@@ -12,6 +12,7 @@ void setup() {
 }
 
 void loop() {
-  irt.send(2, IR_POLL_STATUS, 0xFF);
+  irt.send(0, 0, 0x9);
+  irt.update();
   delay(1000);
 }

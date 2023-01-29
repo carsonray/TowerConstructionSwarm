@@ -10,19 +10,19 @@
 
 using namespace IRcommands;
 
-TowerRobot::IRT::IRT(int id, int sendPin, int recvPin) {
+TowerRobot::IRT::IRT(int address, int sendPin, int recvPin) {
     //Initializes ir send and recieve pins
     this->sendPin = sendPin;
     this->recvPin = recvPin;
 
     //Sets communication id
-    this->id = id;
+    this->address = address;
 }
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
-  IrSender.begin(sendPin, DISABLE_LED_FEEDBACK);
-  IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK);
+  IrSender.begin(sendPin);
+  IrReceiver.begin(recvPin);
 }
 
 //Sends command without data
@@ -38,21 +38,21 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned 
   sendAddress = address;
 
   //Compiles signal components in array
-  int bitArr[3] = {sendKey, command, data};
+  unsigned int bitArr[3] = {sendKey, command, data};
   
   //Resets signal and bit count
-  int currBits = 0;
+  unsigned int currBits = 0;
   sendSignal = 0;
-
+  
   //Builds signal from right to left
-  for (int i = 3; i >=0; i++) {
-    //Adds current component at current base
-    sendSignal += pow(2, currBits) * bitArr[i];
+  for (int i = 2; i >=0; i--) {
+    //Adds current component shifted by current base
+    sendSignal |= (long) bitArr[i]<<currBits;
 
     //Increments base by bits taken up by component
     currBits += bitMap[i];
   }
-
+  
   //Sets defaults for sending
   currInterval = 0;
   minInterval = 0;
@@ -90,12 +90,12 @@ void TowerRobot::IRT::unpack(unsigned long signal) {
   unsigned long temp = signal;
 
   //Builds signal from right to left
-  for (int i = 3; i >=0; i++) {
-    //Gets signal at end with modulo of bitMap base
-    bitArr[i] = temp % (int) pow(2, bitMap[i]);
+  for (int i = 2; i >=0; i--) {
+    //Gets signal at end
+    bitArr[i] = temp & (((long) 1<<bitMap[i]) - 1);
 
     //Removes signal from end
-    temp /= pow(2, bitMap[i]);
+    temp = temp>>bitMap[i];
   }
 
   //Updates recieve key
@@ -117,7 +117,7 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
     recvExists = false;
   }
 
-  //Writes components
+  //Reads components
   *command = recvCommand;
   *data = recvData;
 
@@ -164,6 +164,7 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
+    Serial.println(IrReceiver.decodedIRData.command, BIN);
     //Gets address
     recvAddress = IrReceiver.decodedIRData.address;
 
@@ -177,11 +178,14 @@ void TowerRobot::IRT::update() {
     if (!recvExists && autoRelay) {
       IrSender.sendNEC(recvAddress, IrReceiver.decodedIRData.command, 1);
     }
+
+    IrReceiver.resume();
   }
 
   //Sends data
   if (sendActive) {
-    if ((currRepeats <= sendRepeats) && ((millis() - lastSend) >= currInterval)) {
+    //Checks to see if their are still repeats left and interval is reached
+    if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
       IrSender.sendNEC(sendAddress, sendSignal, 0);
 
       //Updates last send time
@@ -189,11 +193,9 @@ void TowerRobot::IRT::update() {
 
       //Calculates new interval
       currInterval = random(minInterval, maxInterval);
-    }
-  }
 
-  //Resumes recieve cycle
-  if (recvActive) {
-    IrReceiver.resume();
+      //Increments repeats
+      currRepeats++;
+    }
   }
 }

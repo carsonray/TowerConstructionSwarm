@@ -18,7 +18,7 @@
 
 namespace IRcommands {
 	//Address accepted by all
-	#define MASTER_ADDRESS 0
+	#define MASTER_ADDRESS 0x00
 
   #define IR_POLL_STATUS 0x00
   #define IR_STATUS_WAITING 0x01
@@ -236,8 +236,8 @@ class TowerRobot {
 				//Unique address
 				int address;
 
-				//Signal bitmap (key, command, data)
-				int bitMap[3] = {2, 8, 16};
+				//Address bitmap (key, command, data)
+				int bitMap[3] = {2, 2, 4};
 
 				//Whether sending is active
 				bool sendActive = true;
@@ -246,7 +246,7 @@ class TowerRobot {
 				unsigned int sendAddress = 0;
 
 				//Current sending key
-				unsigned int sendKey = 0;
+				unsigned int sendKey = 3;
 				
 				//Current sending signal
 				unsigned long sendSignal = 0;
@@ -267,7 +267,7 @@ class TowerRobot {
 				int currRepeats = 0;
 
 				//Limit on number of signal repeats
-				int sendRepeats = 1;
+				int sendRepeats = 0;
 
 				//Whether receiving is active
 				bool recvActive = true;
@@ -298,7 +298,7 @@ class TowerRobot {
 				
 				void unpack(unsigned long signal);
 			public:
-				IRT(int id, int sendPin, int recvPin);
+				IRT(int address, int sendPin, int recvPin);
 
 				void begin();
 
