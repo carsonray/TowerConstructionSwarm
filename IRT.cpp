@@ -8,8 +8,7 @@
 
 #include <IRremote.hpp>
 
-//Disables send pin macro so it can be set on begin
-//#undef IR_SEND_PIN
+using namespace IRcommands;
 
 TowerRobot::IRT::IRT(int id, int sendPin, int recvPin) {
     //Initializes ir send and recieve pins
@@ -22,8 +21,7 @@ TowerRobot::IRT::IRT(int id, int sendPin, int recvPin) {
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
-  IrSender.begin(DISABLE_LED_FEEDBACK);
-  //IrSender.setSendPin(sendPin);
+  IrSender.begin(sendPin, DISABLE_LED_FEEDBACK);
   IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK);
 }
 
@@ -77,8 +75,8 @@ void TowerRobot::IRT::setSendInterval(int minTime, int maxTime) {
 void TowerRobot::IRT::setSendRepeats(int repeats) {
   sendRepeats = repeats;
 }
-void TowerRobot::IRT::setSendInterrupt(bool interrupted) {
-  sendActive = !interrupted;
+void TowerRobot::IRT::setSendActive(bool active) {
+  sendActive = active;
 }
 void TowerRobot::IRT::resetSendRepeat() {
   currRepeats = 0;
@@ -123,8 +121,7 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
   *command = recvCommand;
   *data = recvData;
 
-  //Returns true if address matches
-  return (recvAddress == id);
+  return true;
 }
 //Receives any unique signal data
 bool TowerRobot::IRT::receiveOnce(unsigned int*command, unsigned int*data) {
@@ -139,17 +136,19 @@ bool TowerRobot::IRT::receiveOnce(unsigned int*command, unsigned int*data) {
   *command = recvCommand;
   *data = recvData;
 
-  //Returns true if address matches and signal is unique
-  return (recvAddress == id) && (recvKey != prevRecvKey);
+  //Returns true if signal is unique
+  return (recvKey != prevRecvKey);
 }
 
-void TowerRobot::IRT::setRecieveInterrupt(bool interrupted) {
-  if (!recvActive && interrupted) {
-    //Clears data if changed to active
-    IrReceiver.decode();
-    IrReceiver.resume();
+void TowerRobot::IRT::setRecieveActive(bool active) {
+  if (recvActive != active) {
+    if (active) {
+      IrReceiver.start();
+    } else {
+      IrReceiver.stop();
+    }
   }
-  recvActive = !interrupted;
+  recvActive = active;
 }
 
 void TowerRobot::IRT::setAutoClear(bool clear) {
@@ -165,13 +164,17 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
-    recvExists = true;
-    
+    //Gets address
     recvAddress = IrReceiver.decodedIRData.address;
+
+    //Unpacks main signal
     unpack(IrReceiver.decodedIRData.command);
 
+    //Determines whether signal is addressed or has master address
+    recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
+    
     //Auto relays non-directed commands
-    if ((recvAddress != id) && autoRelay) {
+    if (!recvExists && autoRelay) {
       IrSender.sendNEC(recvAddress, IrReceiver.decodedIRData.command, 1);
     }
   }
@@ -179,7 +182,7 @@ void TowerRobot::IRT::update() {
   //Sends data
   if (sendActive) {
     if ((currRepeats <= sendRepeats) && ((millis() - lastSend) >= currInterval)) {
-      IrSender.sendNEC(sendAddress, sendSignal, 1);
+      IrSender.sendNEC(sendAddress, sendSignal, 0);
 
       //Updates last send time
       lastSend = millis();

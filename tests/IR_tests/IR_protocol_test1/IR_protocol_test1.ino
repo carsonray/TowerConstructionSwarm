@@ -5,20 +5,13 @@ TowerRobot::IRT irt = TowerRobot::IRT(1, 3, 5);
 
 using namespace IRcommands;
 
-void setup(void) {
+void setup() {
   Serial.begin(9600);
 
   irt.begin();
 }
 
-void loop(void) {
-  unsigned int command, data;
-  if (irt.receive(&command, &data)) {
-    Serial.print("Command: ");
-    Serial.println(command);
-    Serial.print("Data: ");
-    Serial.println(data);
-  }
-  irt.update();
-  delay(50);
+void loop() {
+  irt.send(2, IR_POLL_STATUS, 0xFF);
+  delay(1000);
 }

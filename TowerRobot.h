@@ -17,6 +17,8 @@
 //Commands
 
 namespace IRcommands {
+	//Address accepted by all
+	#define MASTER_ADDRESS 0
 
   #define IR_POLL_STATUS 0x00
   #define IR_STATUS_WAITING 0x01
@@ -231,8 +233,8 @@ class TowerRobot {
 				//Receiving pin
 				int recvPin;
 
-				//Unique id
-				int id;
+				//Unique address
+				int address;
 
 				//Signal bitmap (key, command, data)
 				int bitMap[3] = {2, 8, 16};
@@ -307,7 +309,7 @@ class TowerRobot {
 				void setSendInterval(int minTime, int maxTime);
 
 				void setSendRepeats(int repeats);
-				void setSendInterrupt(bool interrupted);
+				void setSendActive(bool active);
 				void resetSendRepeat();
 
 				bool receive(unsigned int*command, unsigned int*data);
@@ -315,7 +317,7 @@ class TowerRobot {
 
 				void resumeReceive();
 
-				void setRecieveInterrupt(bool interrupted);
+				void setRecieveActive(bool active);
 				void setAutoClear(bool cleared);
 
 				void setAutoRelay(bool active);

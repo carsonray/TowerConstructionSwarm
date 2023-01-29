@@ -8,7 +8,7 @@
 
 #include <IRremote.hpp>
 
-#define RECV_PIN 11
+#define RECV_PIN 5
 
 void setup()
 {
@@ -22,8 +22,8 @@ void setup()
 
 void loop() {
   if (IrReceiver.decode()) {
+    Serial.println(IrReceiver.decodedIRData.address, HEX);
     Serial.println(IrReceiver.decodedIRData.command, HEX);
     IrReceiver.resume(); // Receive the next value
   }
-  delay(100);
 }
