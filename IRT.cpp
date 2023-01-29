@@ -25,6 +25,11 @@ void TowerRobot::IRT::begin() {
   IrReceiver.begin(recvPin);
 }
 
+//Turns sending on and off
+void TowerRobot::IRT::setSendActive(bool active) {
+  sendActive = active;
+}
+
 //Sends command without data
 void TowerRobot::IRT::send(unsigned int address, unsigned int command) {
   send(address, command, 0);
@@ -61,24 +66,51 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned 
   sendActive = true;
 }
 
+//Sets interval between repeats
 void TowerRobot::IRT::setSendInterval(int interval) {
   setSendInterval(interval, interval);
 }
+//Sets random interval between bounds
 void TowerRobot::IRT::setSendInterval(int minTime, int maxTime) {
   minInterval = minTime;
   maxInterval = maxTime;
 }
 
+//Sets number of repeats
 void TowerRobot::IRT::setSendRepeats(int repeats) {
   sendRepeats = repeats;
 }
-void TowerRobot::IRT::setSendActive(bool active) {
-  sendActive = active;
-}
+
+//Resets repeating
 void TowerRobot::IRT::resetSendRepeat() {
   currRepeats = 0;
 }
 
+//Whether transceiver is currently sending
+bool TowerRobot::IRT::isSending() {
+  return (currRepeats < sendRepeats);
+}
+
+//Waits until done sending
+void TowerRobot::IRT::waitSend() {
+  while (isSending()) {
+    update();
+  }
+}
+
+//Turns receiving on or off
+void TowerRobot::IRT::setRecieveActive(bool active) {
+  if (recvActive != active) {
+    if (active) {
+      IrReceiver.start();
+    } else {
+      IrReceiver.stop();
+    }
+  }
+  recvActive = active;
+}
+
+//Unpacks received signal
 void TowerRobot::IRT::unpack(unsigned int address, unsigned int command) {
   //Address component array
   unsigned int bitArr[2];
@@ -106,33 +138,23 @@ void TowerRobot::IRT::unpack(unsigned int address, unsigned int command) {
 //Receives any signal data
 bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
   //Ensures signal is availiable
-  if (!recvExists) {
-    return false;
-  } else if (recvClear) {
-    //Disables access after read
+  if (recvExists) {
+    //Reads components
+    *command = recvCommand;
+    *data = recvData;
+
+    //Turns off receive
     recvExists = false;
   }
 
-  //Reads components
-  *command = recvCommand;
-  *data = recvData;
-
-  return true;
+  return recvExists;
 }
 
-void TowerRobot::IRT::setRecieveActive(bool active) {
-  if (recvActive != active) {
-    if (active) {
-      IrReceiver.start();
-    } else {
-      IrReceiver.stop();
-    }
+//Waits until something is recieved
+void TowerRobot::IRT::waitReceive() {
+  while (!recvExists) {
+    update();
   }
-  recvActive = active;
-}
-
-void TowerRobot::IRT::setAutoClear(bool clear) {
-  recvClear = clear;
 }
 
 //Sets whether non-directed signals are relayed

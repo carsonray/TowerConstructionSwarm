@@ -9,10 +9,13 @@ void setup() {
   Serial.begin(9600);
 
   irt.begin();
+
+  irt.send(0x2, 0x1, 0xFF);
+
+  irt.setSendInterval(500, 5000);
+  irt.setSendRepeats(-1);
 }
 
 void loop() {
-  irt.send(0, 0, 0x9);
   irt.update();
-  delay(1000);
 }

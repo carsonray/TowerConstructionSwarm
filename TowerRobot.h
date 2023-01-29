@@ -272,9 +272,6 @@ class TowerRobot {
 				//Whether recieved signal is availiable
 				bool recvExists = false;
 
-				//Whether recieved signal is cleared on read
-				bool recvClear = true;
-
 				//Current recieved address
 				unsigned int recvAddress = 0;
 
@@ -293,6 +290,8 @@ class TowerRobot {
 
 				void begin();
 
+				void setSendActive(bool active);
+
 				void send(unsigned int address, unsigned int command);
 				void send(unsigned int address, unsigned int command, unsigned int data);
 
@@ -300,15 +299,16 @@ class TowerRobot {
 				void setSendInterval(int minTime, int maxTime);
 
 				void setSendRepeats(int repeats);
-				void setSendActive(bool active);
 				void resetSendRepeat();
+
+				bool isSending();
+				void waitSend();
+
+				void setRecieveActive(bool active);
 
 				bool receive(unsigned int*command, unsigned int*data);
 
-				void resumeReceive();
-
-				void setRecieveActive(bool active);
-				void setAutoClear(bool cleared);
+				void waitReceive();
 
 				void setAutoRelay(bool active);
 
