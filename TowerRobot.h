@@ -18,23 +18,23 @@
 
 namespace IRcommands {
 	//Address accepted by all
-	#define MASTER_ADDRESS 0x00
+	#define MASTER_ADDRESS 0x0
+	
+	//Command
+  	#define IR_STATUS 0x0
 
-  #define IR_POLL_STATUS 0x00
-  #define IR_STATUS_WAITING 0x01
-  #define IR_STATUS_READY 0x02
+	//Data options
+	#define IR_STATUS_POLL 0x0
+  	#define IR_STATUS_WAITING 0x1
+  	#define IR_STATUS_READY 0x2
+	#define IR_STATUS_STOP 0xF
+	
+  	#define IR_CURRENT_TOWER 0x1
+	#define IR_CURRENT_HEIGHT 0x2
 
-  #define IR_STOP 0xFF
-
-  #define IR_TOWER_UPDATE 0x10
-
-  #define IR_CLOSE_GRIP 0x20
-  #define IR_OPEN_GRIP 0x21
-  #define IR_TURRET_LEFT 0x22
-  #define IR_TURRET_RIGHT 0x23
-  #define IR_SLIDE_DOWN 0x24
-  #define IR_SLIDE_UP 0x25
-
+	#define IR_TURRET 0xA
+	#define IR_SLIDE 0xB
+	#define IR_GRIPPER 0xC
 }
 
 class TowerRobot {
@@ -236,20 +236,17 @@ class TowerRobot {
 				//Unique address
 				int address;
 
-				//Address bitmap (key, command, data)
-				int bitMap[3] = {2, 2, 4};
+				//Address bitmap (address, command)
+				int bitMap[2] = {4, 4};
 
 				//Whether sending is active
 				bool sendActive = true;
 
 				//Current sending address
 				unsigned int sendAddress = 0;
-
-				//Current sending key
-				unsigned int sendKey = 3;
 				
-				//Current sending signal
-				unsigned long sendSignal = 0;
+				//Current sending command
+				unsigned int sendCommand = 0;
 
 				//Time of last send
 				unsigned long lastSend = 0;
@@ -281,12 +278,6 @@ class TowerRobot {
 				//Current recieved address
 				unsigned int recvAddress = 0;
 
-				//Current recieved key
-				unsigned int recvKey = 0;
-
-				//Last recieved key
-				unsigned int prevRecvKey = 0;
-
 				//Current recieved command
 				unsigned int recvCommand = 0;
 
@@ -296,7 +287,7 @@ class TowerRobot {
 				//Whether signals for other addresses are automatically relayed
 				bool autoRelay = false;
 				
-				void unpack(unsigned long signal);
+				void unpack(unsigned int address, unsigned int command);
 			public:
 				IRT(int address, int sendPin, int recvPin);
 
@@ -313,7 +304,6 @@ class TowerRobot {
 				void resetSendRepeat();
 
 				bool receive(unsigned int*command, unsigned int*data);
-				bool receiveOnce(unsigned int*command, unsigned int*data);
 
 				void resumeReceive();
 

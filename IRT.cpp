@@ -31,23 +31,20 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command) {
 }
 //Sends command with data
 void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned int data) {
-  //Increments unique key code
-  sendKey = (sendKey + 1) % 4;
+  //Sets command data
+  sendCommand = data;
 
-  //Sets address
-  sendAddress = address;
-
-  //Compiles signal components in array
-  unsigned int bitArr[3] = {sendKey, command, data};
+  //Compiles address components in array
+  unsigned int bitArr[2] = {address, command};
   
   //Resets signal and bit count
   unsigned int currBits = 0;
-  sendSignal = 0;
+  sendAddress = 0;
   
   //Builds signal from right to left
-  for (int i = 2; i >=0; i--) {
+  for (int i = 1; i >=0; i--) {
     //Adds current component shifted by current base
-    sendSignal |= (long) bitArr[i]<<currBits;
+    sendAddress |= bitArr[i]<<currBits;
 
     //Increments base by bits taken up by component
     currBits += bitMap[i];
@@ -68,8 +65,8 @@ void TowerRobot::IRT::setSendInterval(int interval) {
   setSendInterval(interval, interval);
 }
 void TowerRobot::IRT::setSendInterval(int minTime, int maxTime) {
- minInterval = minTime;
- maxInterval = maxTime;
+  minInterval = minTime;
+  maxInterval = maxTime;
 }
 
 void TowerRobot::IRT::setSendRepeats(int repeats) {
@@ -82,29 +79,28 @@ void TowerRobot::IRT::resetSendRepeat() {
   currRepeats = 0;
 }
 
-void TowerRobot::IRT::unpack(unsigned long signal) {
-  //Signal component array
-  unsigned int bitArr[3];
+void TowerRobot::IRT::unpack(unsigned int address, unsigned int command) {
+  //Address component array
+  unsigned int bitArr[2];
 
-  //Gets temporary copy of signal
-  unsigned long temp = signal;
+  //Gets data
+  recvData = command;
 
-  //Builds signal from right to left
-  for (int i = 2; i >=0; i--) {
-    //Gets signal at end
-    bitArr[i] = temp & (((long) 1<<bitMap[i]) - 1);
+  //Gets temporary copy of address
+  unsigned long temp = address;
 
-    //Removes signal from end
+  //Unpacks components from right to left
+  for (int i = 1; i >=0; i--) {
+    //Gets component at end
+    bitArr[i] = temp & (((unsigned int) 1<<bitMap[i]) - 1);
+
+    //Removes component from end
     temp = temp>>bitMap[i];
   }
 
-  //Updates recieve key
-  prevRecvKey = recvKey;
-
-  //Writes components
-  recvKey = bitArr[0];
+  //Sets components
+  recvAddress = bitArr[0];
   recvCommand = bitArr[1];
-  recvData = bitArr[2];
 }
 
 //Receives any signal data
@@ -122,22 +118,6 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
   *data = recvData;
 
   return true;
-}
-//Receives any unique signal data
-bool TowerRobot::IRT::receiveOnce(unsigned int*command, unsigned int*data) {
-  //Ensures signal is availiable
-  if (!recvExists) {
-    return false;
-  } else if (recvClear) {
-    recvExists = false;
-  }
-  
-  //Writes components
-  *command = recvCommand;
-  *data = recvData;
-
-  //Returns true if signal is unique
-  return (recvKey != prevRecvKey);
 }
 
 void TowerRobot::IRT::setRecieveActive(bool active) {
@@ -164,19 +144,15 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
-    Serial.println(IrReceiver.decodedIRData.command, BIN);
-    //Gets address
-    recvAddress = IrReceiver.decodedIRData.address;
-
-    //Unpacks main signal
-    unpack(IrReceiver.decodedIRData.command);
+    //Unpacks signal
+    unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
 
     //Determines whether signal is addressed or has master address
     recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
     
     //Auto relays non-directed commands
     if (!recvExists && autoRelay) {
-      IrSender.sendNEC(recvAddress, IrReceiver.decodedIRData.command, 1);
+      IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
     }
 
     IrReceiver.resume();
@@ -186,7 +162,7 @@ void TowerRobot::IRT::update() {
   if (sendActive) {
     //Checks to see if their are still repeats left and interval is reached
     if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
-      IrSender.sendNEC(sendAddress, sendSignal, 0);
+      IrSender.sendNEC(sendAddress, sendCommand, 0);
 
       //Updates last send time
       lastSend = millis();
