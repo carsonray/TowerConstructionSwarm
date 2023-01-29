@@ -145,9 +145,10 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
 
     //Turns off receive
     recvExists = false;
+    return true;
+  } else {
+    return false;
   }
-
-  return recvExists;
 }
 
 //Waits until something is recieved

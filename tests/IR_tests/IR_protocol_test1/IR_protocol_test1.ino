@@ -9,13 +9,31 @@ void setup() {
   Serial.begin(9600);
 
   irt.begin();
-
-  irt.send(0x2, 0x1, 0xFF);
-
-  irt.setSendInterval(500, 5000);
-  irt.setSendRepeats(-1);
 }
 
 void loop() {
-  irt.update();
+  unsigned int command, data;
+
+  irt.send(0x2, 0x1, 0xAA);
+
+  irt.setSendInterval(500);
+  irt.setSendRepeats(5);
+  irt.waitSend();
+
+  delay(1000);
+
+  irt.send(0x1, 0x2, 0xBB);
+
+  irt.setSendInterval(500);
+  irt.setSendRepeats(5);
+  irt.waitSend();
+
+  irt.waitReceive();
+  irt.receive(&command, &data);
+  Serial.print("Command: ");
+  Serial.println(command, HEX);
+  Serial.print("Data: ");
+  Serial.println(data, HEX);
+
+  delay(1000);
 }
