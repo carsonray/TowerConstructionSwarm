@@ -4,7 +4,7 @@
 
 void setup()
 {
-	IrSender.begin(SEND_PIN, DISABLE_LED_FEEDBACK);
+	IrSender.begin(SEND_PIN, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
 }
 
 void loop() {

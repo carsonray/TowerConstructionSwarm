@@ -16,7 +16,7 @@ void setup()
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
   Serial.println("Enabling IRin");
-  IrReceiver.begin(RECV_PIN, DISABLE_LED_FEEDBACK);
+  IrReceiver.begin(RECV_PIN, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
   Serial.println("Enabled IRin");
 }
 

@@ -21,8 +21,8 @@ TowerRobot::IRT::IRT(int address, int sendPin, int recvPin) {
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
-  IrSender.begin(sendPin);
-  IrReceiver.begin(recvPin);
+  IrSender.begin(sendPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
+  IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
 }
 
 //Turns sending on and off

@@ -168,7 +168,7 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
   //Turns on auto relay
-  irt.setAutoRelay(true);
+  irt->setAutoRelay(true);
 
   unsigned int command, data;
   while (true) {
@@ -190,5 +190,5 @@ void TowerRobot::synchronize() {
   }
 
   //Turns off auto relay
-  irt.setAutoRelay(false);
+  irt->setAutoRelay(false);
 }
