@@ -40,7 +40,10 @@ void TowerRobot::home() {
 void TowerRobot::home(double homePos) {
   gripper->begin();
   gripper->open();
-  turret->moveTo(false, 0);
+  if (irtInit) {
+    irt.begin();
+    irt.setAutoRelay(true);
+  }
   if (colorInit) {
     colorSensor->begin();
   }
@@ -160,5 +163,27 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 
     //Gets color of block
     return colorSensor->getBlockColor();
+  }
+}
+
+//Synchronizes so all robots start at the same time
+void TowerRobot::synchronize() {
+  unsigned int command, data;
+  while (true) {
+    //Waits until data is received
+    irt.waitReceive();
+    irt.receive(&command, &data);
+
+    //Checks to ensure command is status related
+    if (command == IR_STATUS) {
+      if (data == IR_STATUS_POLL) {
+        //Sends ready status to controller
+        irt.send(CONTROL_ADDRESS, IR_STATUS, IR_STATUS_READY);
+      } else if (data == IR_STATUS_READY) {
+        //Ends synchronization if controller sends ready signal
+        break;
+      }
+    }
+    irt.update();
   }
 }

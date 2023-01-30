@@ -198,3 +198,33 @@ void TowerRobot::IRT::update() {
     }
   }
 }
+
+//Synchronizes robots
+void TowerRobot::IRT::synchronize(int num, int interval) {
+  //Whether all robots are ready
+  bool allReady = false;
+
+  while (allReady) {
+    //Resets ready state
+    allReady = true;
+
+    //Loops through robots
+    for (int i = CONTROL_ADDRESS + 1; i < CONTROL_ADDRESS + 1 + num; i++) {
+      //Sends status poll
+      send(i, IR_STATUS, IR_STATUS_POLL);
+
+      //Waits until done sending and then waits interval
+      waitSend();
+      delay(interval);
+
+      //Checks to see if robot is ready
+      unsigned int command, data;
+      if (receive(&command, &data)) {
+        allReady = allReady && (command == IR_STATUS) && (data == IR_STATUS_READY);
+      }
+    }
+  }
+
+  //Sends ready signal
+  send(MASTER_ADDRESS, IR_STATUS, IR_STATUS_READY);
+}

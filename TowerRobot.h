@@ -19,15 +19,16 @@
 namespace IRcommands {
 	//Address accepted by all
 	#define MASTER_ADDRESS 0x0
+
+	//Controller address
+	#define CONTROL_ADDRESS 0x1
 	
 	//Command
   	#define IR_STATUS 0x0
 
 	//Data options
 	#define IR_STATUS_POLL 0x0
-  	#define IR_STATUS_WAITING 0x1
-  	#define IR_STATUS_READY 0x2
-	#define IR_STATUS_STOP 0xF
+  	#define IR_STATUS_READY 0x1
 	
   	#define IR_CURRENT_TOWER 0x1
 	#define IR_CURRENT_HEIGHT 0x2
@@ -313,6 +314,8 @@ class TowerRobot {
 				void setAutoRelay(bool active);
 
 				void update();
+
+				void synchronize(int num, int interval);
 		};
 
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
@@ -335,6 +338,7 @@ class TowerRobot {
 		void unload(int tower);
 
 		int scanBlock(int tower, int blockNum);
+		void synchronize();
 	private:
 		Slide* slide;
 		Turret* turret;
