@@ -1,7 +1,7 @@
 #include <TowerRobot.h>
 
 /* Initialize IRT object */
-TowerRobot::IRT irt = TowerRobot::IRT(2, 13, 5);
+TowerRobot::IRT irt = TowerRobot::IRT(2, 3, 5);
 
 using namespace IRcommands;
 

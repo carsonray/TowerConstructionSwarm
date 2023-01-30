@@ -41,8 +41,7 @@ void TowerRobot::home(double homePos) {
   gripper->begin();
   gripper->open();
   if (irtInit) {
-    irt.begin();
-    irt.setAutoRelay(true);
+    irt->begin();
   }
   if (colorInit) {
     colorSensor->begin();
@@ -168,22 +167,28 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
+  //Turns on auto relay
+  irt.setAutoRelay(true);
+
   unsigned int command, data;
   while (true) {
     //Waits until data is received
-    irt.waitReceive();
-    irt.receive(&command, &data);
+    irt->waitReceive();
+    irt->receive(&command, &data);
 
     //Checks to ensure command is status related
     if (command == IR_STATUS) {
       if (data == IR_STATUS_POLL) {
         //Sends ready status to controller
-        irt.send(CONTROL_ADDRESS, IR_STATUS, IR_STATUS_READY);
+        irt->send(CONTROL_ADDRESS, IR_STATUS, IR_STATUS_READY);
       } else if (data == IR_STATUS_READY) {
         //Ends synchronization if controller sends ready signal
         break;
       }
     }
-    irt.update();
+    irt->update();
   }
+
+  //Turns off auto relay
+  irt.setAutoRelay(false);
 }
