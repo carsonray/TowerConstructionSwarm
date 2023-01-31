@@ -169,7 +169,11 @@ void TowerRobot::IRT::update() {
   if (recvActive && IrReceiver.decode()) {
     //Unpacks signal
     unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
-
+    
+    Serial.println(recvAddress);
+    Serial.println(recvCommand);
+    Serial.println(recvData);
+    Serial.println();
     //Determines whether signal is addressed or has master address
     recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
     
@@ -201,26 +205,39 @@ void TowerRobot::IRT::update() {
 
 //Synchronizes robots
 void TowerRobot::IRT::synchronize(int num, int interval) {
+  num = 1;
   //Whether all robots are ready
   bool allReady = false;
 
-  while (allReady) {
+  while (!allReady) {
     //Resets ready state
     allReady = true;
 
     //Loops through robots
     for (int i = CONTROL_ADDRESS + 1; i < CONTROL_ADDRESS + 1 + num; i++) {
+      Serial.print("Polling : ");
+      Serial.println(i);
       //Sends status poll
       send(i, IR_STATUS, IR_STATUS_POLL);
 
       //Waits until done sending and then waits interval
       waitSend();
       delay(interval);
+      update();
 
       //Checks to see if robot is ready
       unsigned int command, data;
       if (receive(&command, &data)) {
+        Serial.println("Received");
         allReady = allReady && (command == IR_STATUS) && (data == IR_STATUS_READY);
+        allReady = false;
+      } else {
+        allReady = false;
+      }
+
+      //Breaks if all robots are not ready
+      if (!allReady) {
+        break;
       }
     }
   }

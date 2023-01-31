@@ -7,7 +7,6 @@ using namespace IRcommands;
 
 void setup() {
   Serial.begin(9600);
-
   irt.begin();
   irt.synchronize(2, 500);
 }

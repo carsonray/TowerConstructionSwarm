@@ -48,14 +48,15 @@ TowerRobot::ColorSensor colorSensor = TowerRobot::ColorSensor();
 TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS+2, 3, 5);
 
 //Creates towerrobot instance
-TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor);
+TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 void setup() {
-  robot.setTowerHeights(4, 0, 0, 0);
-  robot.home();
+  //robot.setTowerHeights(4, 0, 0, 0);
+  irt.begin();
+  //robot.home();
   robot.synchronize();
 }
 
 void loop() {
-  robot.moveToBlock(0, 1);
+  gripper.close();
 }

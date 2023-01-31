@@ -1,6 +1,6 @@
 #include <IRremote.hpp>
 
-#define SEND_PIN 3
+#define SEND_PIN 13
 
 void setup()
 {
