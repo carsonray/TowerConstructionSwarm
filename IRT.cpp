@@ -99,14 +99,7 @@ void TowerRobot::IRT::waitSend() {
 }
 
 //Turns receiving on or off
-void TowerRobot::IRT::setRecieveActive(bool active) {
-  if (recvActive != active) {
-    if (active) {
-      IrReceiver.start();
-    } else {
-      IrReceiver.stop();
-    }
-  }
+void TowerRobot::IRT::setReceiveActive(bool active) {
   recvActive = active;
 }
 
@@ -151,9 +144,17 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
   }
 }
 
-//Waits until something is recieved
+//Waits until something is received
 void TowerRobot::IRT::waitReceive() {
   while (!recvExists) {
+    update();
+  }
+}
+
+//Waits until received or timeout
+void TowerRobot::IRT::waitReceive(int timeout) {
+  unsigned long timeoutStart = millis();
+  while ((!recvExists) && ((millis() - timeoutStart) < timeout)) {
     update();
   }
 }
@@ -167,19 +168,18 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
-    //Unpacks signal
-    unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
-    
-    Serial.println(recvAddress);
-    Serial.println(recvCommand);
-    Serial.println(recvData);
-    Serial.println();
-    //Determines whether signal is addressed or has master address
-    recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
-    
-    //Auto relays non-directed commands
-    if (!recvExists && autoRelay) {
-      IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
+    //Ensures protocol is correct and is not interfering with sending
+    if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
+      //Unpacks signal
+      unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
+      
+      //Determines whether signal is addressed or has master address
+      recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
+      
+      //Auto relays non-directed commands
+      if (!recvExists && autoRelay) {
+        IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
+      }
     }
 
     IrReceiver.resume();
@@ -205,7 +205,6 @@ void TowerRobot::IRT::update() {
 
 //Synchronizes robots
 void TowerRobot::IRT::synchronize(int num, int interval) {
-  num = 1;
   //Whether all robots are ready
   bool allReady = false;
 
@@ -215,22 +214,16 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
 
     //Loops through robots
     for (int i = CONTROL_ADDRESS + 1; i < CONTROL_ADDRESS + 1 + num; i++) {
-      Serial.print("Polling : ");
-      Serial.println(i);
       //Sends status poll
       send(i, IR_STATUS, IR_STATUS_POLL);
 
-      //Waits until done sending and then waits interval
-      waitSend();
-      delay(interval);
-      update();
+      //Waits until received or timeout
+      waitReceive(interval);
 
       //Checks to see if robot is ready
       unsigned int command, data;
       if (receive(&command, &data)) {
-        Serial.println("Received");
         allReady = allReady && (command == IR_STATUS) && (data == IR_STATUS_READY);
-        allReady = false;
       } else {
         allReady = false;
       }
@@ -241,7 +234,10 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
       }
     }
   }
-
+  
   //Sends ready signal
   send(MASTER_ADDRESS, IR_STATUS, IR_STATUS_READY);
+  setSendInterval(200);
+  setSendRepeats(5);
+  waitSend();
 }

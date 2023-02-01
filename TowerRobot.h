@@ -17,6 +17,9 @@
 //Commands
 
 namespace IRcommands {
+	//Delay cycle for responses
+	#define DELAY_CYCLE 60
+
 	//Address accepted by all
 	#define MASTER_ADDRESS 0x0
 
@@ -273,6 +276,9 @@ class TowerRobot {
 				//Whether recieved signal is availiable
 				bool recvExists = false;
 
+				//Wait time to avoid receiving interference
+				int sheildTime = 15;
+
 				//Current recieved address
 				unsigned int recvAddress = 0;
 
@@ -305,11 +311,12 @@ class TowerRobot {
 				bool isSending();
 				void waitSend();
 
-				void setRecieveActive(bool active);
+				void setReceiveActive(bool active);
 
 				bool receive(unsigned int*command, unsigned int*data);
 
 				void waitReceive();
+				void waitReceive(int timeout);
 
 				void setAutoRelay(bool active);
 

@@ -167,14 +167,14 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
-  //Turns on auto relay
-  //irt->setAutoRelay(true);
-
   unsigned int command, data;
   while (true) {
     //Waits until data is received
     irt->waitReceive();
     irt->receive(&command, &data);
+
+    //Delays response
+    delay(DELAY_CYCLE);
     
     //Checks to ensure command is status related
     if (command == IR_STATUS) {
@@ -188,7 +188,4 @@ void TowerRobot::synchronize() {
     }
     irt->update();
   }
-
-  //Turns off auto relay
-  //irt->setAutoRelay(false);
 }
