@@ -5,7 +5,7 @@
 
 // Slide parameters
 const double stepsPerBlock = -200.0/90*28;
-const double upperLimit = 6;
+const double upperLimit = 10;
 
 #define slideStep 12
 #define slideDir 13

@@ -44,7 +44,7 @@ void TowerRobot::Gripper::setOpen(bool openState) {
 
   //Updates action timer
   lastAction = millis();
-  waitTime = 1000;
+  waitTime = 1250;
 }
 
 //Waits for action to complete

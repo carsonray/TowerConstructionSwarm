@@ -138,10 +138,10 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
 
   //Overshoots to correct for gear slop if moving counterclockwise
   double diff = degree - currentPosition();
-  if (diff < 0 || (correcting && (diff == gearCorrect))) {
+  if (diff < 0 || (correcting && (diff <= gearCorrect))) {
     degree -= gearCorrect;
     correcting = true;
-  } else if (degree - currentPosition() > 0) {
+  } else if (diff > 0) {
     //Otherwise stops correcting
     correcting = false;
   }

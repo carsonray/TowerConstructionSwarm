@@ -33,6 +33,11 @@ void TowerRobot::setTowerHeights(int tower1, int tower2, int tower3, int tower4)
   towerHeights[3] = tower4;
 }
 
+//Gets the height of a tower
+int TowerRobot::getTowerHeight(int tower) {
+  return towerHeights[tower];
+}
+
 //Homes robot
 void TowerRobot::home() {
   home(slide->getHomePos());
@@ -82,23 +87,38 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     
     //If not at correct tower
     if (turret->getTowerPos() != tower) {
+      //Moves to clear current tower
+      if (slide->currentPosition() < (towerHeights[turret->getTowerPos()] + slide->getClearMargin())) {
+        slide->moveToClear(towerHeights[turret->getTowerPos()]);
+        slide->wait();
+      }
+
       //Loops through towers between current and target
-      int testPos = turret->getTowerPos();
+      int testPos = turret->nextTowerTo(tower);
       while (true) {
         //If current position will not clear tower
-        if (slide->currentPosition() < (towerHeights[testPos] + clearMargin)) {
-          //Moves to height of obstructing tower + margin
-          slide->moveToBlock(towerHeights[testPos] + clearMargin);
+        if (slide->currentPosition() < towerHeights[testPos]) {
+          //Moves to height of obstructing tower
+          slide->moveToClear(towerHeights[testPos]);
 
-          //Moves to carry position next to tower (if not first tower)
-          if (testPos != turret->getTowerPos()) {
-            turret->moveToCarry(testPos);
+          //Moves to carry position next to tower
+          turret->moveToCarry(testPos);
+
+          //Runs slide and turret
+          bool slideRun = true;
+          bool turretRun = true;
+          while (slideRun || turretRun) {
+            slideRun = slide->run();
+            turretRun = turret->run();
+
+            //Moves turret to final position if slide is done
+            if (!slideRun) {
+              turret->moveToTower(testPos);
+            }
           }
-
-          waitSlideTurret();
         }
 
-        //If just checked target tower, break
+        //Ends if final tower was checked
         if (testPos == tower) {
           break;
         }
@@ -158,10 +178,19 @@ void TowerRobot::unload(int tower) {
 int TowerRobot::scanBlock(int tower, int blockNum) {
   if (colorInit) {
     //Moves to tower clockwise from target to align color sensor with target
-    moveToBlock(turret->nextTower(tower, -1), blockNum);
+    moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin);
 
     //Gets color of block
-    return colorSensor->getBlockColor();
+    int blockColor = colorSensor->getBlockColor();
+
+    //Updates tower height
+    if ((blockColor > -1) && (blockNum >= towerHeights[tower])) {
+      towerHeights[tower] = blockNum + 1;
+    } else if ((blockColor == -1) && (blockNum < towerHeights[tower])) {
+      towerHeights[tower] = blockNum;
+    }
+
+    return blockColor;
   }
 }
 

@@ -67,7 +67,13 @@ class TowerRobot {
 				double defAccel = 1;
 
 				//Default max speed
-				double defMax = 3.5;
+				double defMax = 2.5;
+
+				//Margin to clear blocks after loading
+				double clearMargin = 0.3;
+
+				//Current block position
+				int currBlockPos = 0;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
@@ -91,9 +97,14 @@ class TowerRobot {
 				void home(double homePos);
 
 				double getHomePos();
+				int getBlockPos();
+				double getClearMargin();
 
 				void moveToBlock(double blockPos);
 				void moveToBlock(double blockPos, double accel, double max);
+
+				void moveToClear(int blockPos);
+				void moveToClear(int blockPos, double accel, double max);
 				
 				void moveByBlock(double blockRel);
 				void moveByBlock(double blockRel, double accel, double max);
@@ -117,7 +128,7 @@ class TowerRobot {
 				double defAccel = 30;
 
 				//Default max speed
-				double defMax = 100;
+				double defMax = 80;
 
 				//Current tower position
 				int currTowerPos = 0;
@@ -330,6 +341,7 @@ class TowerRobot {
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper, ColorSensor* colorSensor, IRT* irt);
 
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
+		int getTowerHeight(int tower);
 
 		void waitSlideTurret();
 
@@ -365,8 +377,8 @@ class TowerRobot {
 		//Current number of block cargo
 		int cargo = 0;
 
-		//Margin to clear blocks after loading
-		double clearMargin = 0.2;
+		//Margin for color sensor to read block
+		double sensorMargin = 0.15;
 };
 
 #endif
