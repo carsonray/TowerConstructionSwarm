@@ -221,7 +221,7 @@ class TowerRobot {
 				Adafruit_TCS34725 tcs;
 
 				//Empty/block present threshold
-				int emptyThres = 50;
+				int emptyThres = 120;
 
 				//Block color values (black, white, red, blue)
 				int blockColors[4][3] = {

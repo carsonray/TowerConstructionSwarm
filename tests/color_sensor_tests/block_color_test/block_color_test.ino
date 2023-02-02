@@ -10,5 +10,21 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(sensor.getBlockColor());
+  switch(sensor.getBlockColor()) {
+    case -1:
+      Serial.println("Empty");
+      break;
+    case 0:
+      Serial.println("Black");
+      break;
+    case 1:
+      Serial.println("White");
+      break;
+    case 2:
+      Serial.println("Red");
+      break;
+    case 3:
+      Serial.println("Blue");
+      break;
+  }
 }

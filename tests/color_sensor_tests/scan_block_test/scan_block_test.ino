@@ -55,7 +55,7 @@ void setup() {
 void loop() {
   for (int i = 0; i < 4; i++) {
     int color = robot.scanBlock(0, i);
-    if (color == 3) {
+    if (color == 1) {
       robot.load(0, i);
       robot.unload(1);
       break;
