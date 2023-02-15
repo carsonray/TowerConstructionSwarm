@@ -116,10 +116,7 @@ class TowerRobot {
 				double stepsPerDegree;
 
 				//Start position on homing
-				double homePos = 3;
-
-				//Correction for gear slip
-				double gearCorrect = 3;
+				double homePos = 2.5;
 
 				//Whether position is corrected
 				bool correcting = false;
@@ -204,7 +201,7 @@ class TowerRobot {
 				unsigned long waitTime = 0;
 
 				//Positions
-				int gripPos[2] = {40, 190};
+				int gripPos[2] = {40, 185};
 			public:
 				Gripper(int gripPin);
 
