@@ -4,7 +4,7 @@
 #include <Button.h>
 
 // Define parameters
-const double stepsPerBlock = -200.0/90*28;
+const double stepsPerBlock = -200.0/90*27;
 const double upperLimit = 6;
 
 #define stepPin 12

@@ -4,7 +4,7 @@
 #include <Button.h>
 
 // Slide parameters
-const double stepsPerBlock = -200.0/90*28;
+const double stepsPerBlock = -200.0/90*27;
 const double upperLimit = 10;
 
 #define slideStep 12

@@ -5,7 +5,7 @@
 
 // Slide parameters
 const double stepsPerBlock = -200.0/90*27;
-const double upperLimit = 6;
+const double upperLimit = 10;
 
 #define slideStep 12
 #define slideDir 13
@@ -41,15 +41,22 @@ TowerRobot::Turret turret = TowerRobot::Turret(stepsPerDegree, &turretStepper);
 //Creates gripper instance
 TowerRobot::Gripper gripper = TowerRobot::Gripper(gripPin);
 
+//Creates color sensor instance
+TowerRobot::ColorSensor colorSensor = TowerRobot::ColorSensor();
+
+//Creates IRT instance
+TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS+1, 3, 5);
+
 //Creates towerrobot instance
-TowerRobot robot = TowerRobot(&slide, &turret, &gripper);
+TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 void setup() {
-  robot.setTowerHeights(4, 0, 0, 0);
+  robot.setTowerHeights(5, 0, 0, 0);
   robot.home();
+  robot.synchronize();
+  robot.moveToBlock(0, 3);
 }
 
 void loop() {
-  robot.load(0);
-  robot.unload(1);
+  
 }

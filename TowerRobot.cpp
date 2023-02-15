@@ -43,14 +43,19 @@ void TowerRobot::home() {
   home(slide->getHomePos());
 }
 void TowerRobot::home(double homePos) {
-  gripper->begin();
-  gripper->open();
   if (irtInit) {
     irt->begin();
   }
   if (colorInit) {
     colorSensor->begin();
   }
+  gripper->begin();
+  gripper->open();
+
+  turret->home();
+  turret->moveTo(true, 0);
+  turret->wait();
+
   slide->home(homePos);
 }
 

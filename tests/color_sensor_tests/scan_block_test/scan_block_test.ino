@@ -4,7 +4,7 @@
 #include <Button.h>
 
 // Slide parameters
-const double stepsPerBlock = -200.0/90*28;
+const double stepsPerBlock = -200.0/90*27;
 const double upperLimit = 6;
 
 #define slideStep 12
@@ -53,12 +53,14 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 3; i >= 0; i--) {
     int color = robot.scanBlock(0, i);
-    if (color == 1) {
+    if (color == 2) {
       robot.load(0, i);
       robot.unload(1);
-      break;
+    } else if (color == 3) {
+      robot.load(0, i);
+      robot.unload(3);
     }
   }
   while (true) {};

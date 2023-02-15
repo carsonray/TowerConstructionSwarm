@@ -115,8 +115,11 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
-				//Correction for gear slop
-				double gearCorrect = 6;
+				//Start position on homing
+				double homePos = 3;
+
+				//Correction for gear slip
+				double gearCorrect = 3;
 
 				//Whether position is corrected
 				bool correcting = false;
@@ -149,6 +152,9 @@ class TowerRobot {
 
 				double distanceToGo();
 				void wait();
+
+				void home();
+				void home(double homePos);
 
 				double currentPosition();
 				double currentPosition(bool global);
@@ -198,7 +204,7 @@ class TowerRobot {
 				unsigned long waitTime = 0;
 
 				//Positions
-				int gripPos[2] = {40, 185};
+				int gripPos[2] = {40, 190};
 			public:
 				Gripper(int gripPin);
 

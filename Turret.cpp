@@ -43,6 +43,18 @@ void TowerRobot::Turret::wait() {
   }
 }
 
+//Homes turret at desired zero position
+void TowerRobot::Turret::home() {
+  home(homePos);
+}
+void TowerRobot::Turret::home(double homePos) {
+  //Sets home position
+  this->homePos = homePos;
+
+  //Sets stepper position
+  stepper->setCurrentPosition(convertToRaw(homePos));
+}
+
 //Returns current block position
 double TowerRobot::Turret::currentPosition() {
   return currentPosition(true);
@@ -137,14 +149,14 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
   }
 
   //Overshoots to correct for gear slop if moving counterclockwise
-  double diff = degree - currentPosition();
+  /*double diff = degree - currentPosition();
   if (diff < 0 || (correcting && (diff <= gearCorrect))) {
     degree -= gearCorrect;
     correcting = true;
   } else if (diff > 0) {
     //Otherwise stops correcting
     correcting = false;
-  }
+  }*/
 
   //Sets stepper settings
   stepper->setAcceleration(convertToRaw(accel));
