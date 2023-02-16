@@ -148,6 +148,16 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
     degree = currentPosition() + (localize(degree - currentPosition()));
   }
 
+  //Overshoots to correct for gear slop if moving counterclockwise
+  double diff = degree - currentPosition();
+  if (diff < 0 || (correcting && (diff <= gearCorrect))) {
+    degree -= gearCorrect;
+    correcting = true;
+  } else if (diff > 0) {
+    //Otherwise stops correcting
+    correcting = false;
+  }
+
   //Sets stepper settings
   stepper->setAcceleration(convertToRaw(accel));
   stepper->setMaxSpeed(convertToRaw(max));

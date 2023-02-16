@@ -118,6 +118,9 @@ class TowerRobot {
 				//Start position on homing
 				double homePos = 2.5;
 
+				//Correction for gear slippage
+				double gearCorrect = 3;
+
 				//Whether position is corrected
 				bool correcting = false;
 
