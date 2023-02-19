@@ -90,14 +90,19 @@ void setup() {
 }
 
 void loop() {
-  //Gets new load tower that was not the previous unload tower
-  //And has blocks on it
-  //And is availiable
-  while (true) {
-    loadTower = random(0, 4);
+  if ((robot.getTowerHeight(targetTower) != 0) && openTowers[targetTower]) {
+    //Ensures target tower is fully unloaded
+    loadTower = targetTower;
+  } else {
+    //Gets random load tower that was not the previous unload tower
+    //And has blocks on it
+    //And is availiable
+    while (true) {
+      loadTower = random(0, 4);
 
-    if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
-      break;
+      if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
+        break;
+      }
     }
   }
   
@@ -108,7 +113,7 @@ void loop() {
   currBlock = currHeight;
   
   //Finds actual tower height
-  bool startedEmpty = false;
+  /*bool startedEmpty = false;
   while (true) {
     checkColor = robot.scanBlock(loadTower, currBlock);
 
@@ -139,12 +144,15 @@ void loop() {
 
   //Updates tower height
   currHeight = robot.getTowerHeight(loadTower);
-  
+  */
   //Whether the top of the tower was the target color
   bool startedTarget = false;
 
   //Loops through checked colors and then finds more colors if necessary
-  for (currBlock = currHeight - 1; currBlock >= 0; currBlock--) {
+  while (currBlock > 0) {
+    //Moves down tower
+    currBlock--;
+
     //If color is not read, reads it in
     checkColor = bufferColors[currBlock];
     if (checkColor == -2) {
@@ -158,7 +166,7 @@ void loop() {
 
     //Breaks if color changes away or to target color
     if (startedTarget != (checkColor == targetColor)) {
-      //Moves to position before change
+      //Moves to block before change
       currBlock++;
       break;
     }
@@ -174,25 +182,24 @@ void loop() {
     //Loads block
     robot.load(loadTower, currBlock);
 
-    if (startedTarget && (robot.getTowerHeight(targetTower) == 0)) {
-      //Ensures target blocks are loaded on target tower when ready
+    if (startedTarget && (loadTower != targetTower)) {
+      //Ensures target blocks are loaded on target tower
       unloadTower = targetTower;
     } else {
       //Unloads on random tower
       while (true) {
         unloadTower = random(0, 4);
 
-        //Ensures uneccesary blocks are not loaded on target tower
-        //And ensures blocks are not unloaded on same tower they are loaded on
-        if ((unloadTower != loadTower) && (unloadTower != targetTower))) {
+        //Ensures uneccesary blocks are not loaded on same load tower or target tower
+        if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
           break;
         }
       }
     }
 
     robot.unload(unloadTower);
-  } else {
-    //Locks tower
+  } else if (currBlock == 0) {
+    //Locks tower if nothing should be loaded
     openTowers[loadTower] = false;
   }
 }
