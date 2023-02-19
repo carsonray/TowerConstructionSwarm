@@ -145,7 +145,7 @@ double ScaledStepper::scalePos(long rawPos) {
 //Unscales intergrated full steps to raw step position
 long ScaledStepper::unscalePos(double scaledPos) {
     //Uses zero positions at last mode change and integrates
-    return (long) ((scaledPos-prevScaledPos)*stepMode + prevRawPos);
+    return round((scaledPos-prevScaledPos)*stepMode + prevRawPos);
 }
 
 //Scales value to terms of full steps

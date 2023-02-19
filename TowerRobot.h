@@ -99,6 +99,7 @@ class TowerRobot {
 				double getHomePos();
 				int getBlockPos();
 				double getClearMargin();
+				double getStepError();
 
 				void moveToBlock(double blockPos);
 				void moveToBlock(double blockPos, double accel, double max);

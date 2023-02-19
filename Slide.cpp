@@ -130,6 +130,10 @@ double TowerRobot::Slide::getClearMargin() {
   return clearMargin;
 }
 
+double TowerRobot::Slide::getStepError() {
+  return convertToBlock(0.5/stepper->getStepMode());
+}
+
 //Moves to block position
 void TowerRobot::Slide::moveToBlock(double blockPos) {
   moveToBlock(blockPos, defAccel, defMax);
