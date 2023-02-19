@@ -384,7 +384,7 @@ class TowerRobot {
 		int cargo = 0; 
 
 		//Margin for color sensor to read block
-		double sensorMargin = 0.15;
+		double sensorMargin = 0.2;
 };
 
 #endif
