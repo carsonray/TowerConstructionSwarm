@@ -94,22 +94,20 @@ int TowerRobot::Turret::numPos() {
 }
 
 //Gets next tower in direction
-int TowerRobot::Turret::nextTower(int dir) {
-  return nextTower(currTowerPos, dir);
+int TowerRobot::Turret::nextTower(int change) {
+  return nextTower(currTowerPos, change);
 }
-int TowerRobot::Turret::nextTower(int curr, int dir) {
+int TowerRobot::Turret::nextTower(int curr, int change) {
   //Increments tower position
-  int newTower = curr + dir;
+  int newTower = curr + change;
 
-  // Wraps around array positions
-  int num = numPos();
   if (newTower < 0) {
-    newTower += num;
-  } else if (newTower >= num) {
-    newTower -= num;
+    //Gets equivalent modulo in positive domain
+    return numPos() - (abs(newTower) % numPos());
+  } else {
+    //Gets regular modulo
+    return newTower % numPos();
   }
-
-  return newTower;
 }
 
 

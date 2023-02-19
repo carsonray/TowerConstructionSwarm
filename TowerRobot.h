@@ -164,8 +164,8 @@ class TowerRobot {
 
 				int getTowerPos();
 
-				int nextTower(int dir);
-				int nextTower(int curr, int dir);
+				int nextTower(int change);
+				int nextTower(int curr, int change);
 
 				int nextTowerTo(int target);
 				int nextTowerTo(int curr, int target);

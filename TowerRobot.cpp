@@ -102,7 +102,7 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       int testPos = turret->nextTowerTo(tower);
       while (true) {
         //If current position will not clear tower
-        if (slide->currentPosition() - towerHeights[testPos] < -0.01) {
+        if (slide->currentPosition() - (towerHeights[testPos] + slide->getClearMargin()) < -0.01) {
           //Moves to height of obstructing tower
           slide->moveToClear(towerHeights[testPos]);
 
