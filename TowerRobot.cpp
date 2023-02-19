@@ -73,7 +73,7 @@ void TowerRobot::moveToBlock(int tower) {
   //Moves to top of tower as default
   moveToBlock(tower, towerHeights[tower] - 1);
 }
-void TowerRobot::moveToBlock(int tower, int blockNum) {
+void TowerRobot::moveToBlock(int tower, double blockNum) {
   if (cargo == 0) {
     //No cargo
 
@@ -93,7 +93,7 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
     //If not at correct tower
     if (turret->getTowerPos() != tower) {
       //Moves to clear current tower
-      if (slide->currentPosition() < (towerHeights[turret->getTowerPos()] + slide->getClearMargin())) {
+      if (slide->currentPosition() - (towerHeights[turret->getTowerPos()] + slide->getClearMargin()) < -0.01) {
         slide->moveToClear(towerHeights[turret->getTowerPos()]);
         slide->wait();
       }
@@ -102,7 +102,7 @@ void TowerRobot::moveToBlock(int tower, int blockNum) {
       int testPos = turret->nextTowerTo(tower);
       while (true) {
         //If current position will not clear tower
-        if (slide->currentPosition() < towerHeights[testPos]) {
+        if (slide->currentPosition() - towerHeights[testPos] < -0.01) {
           //Moves to height of obstructing tower
           slide->moveToClear(towerHeights[testPos]);
 
@@ -181,7 +181,7 @@ void TowerRobot::unload(int tower) {
 
 //Scans color of particular block
 int TowerRobot::scanBlock(int tower, int blockNum) {
-  if (colorInit) {
+  if (true/*colorInit*/) {
     //Moves to tower clockwise from target to align color sensor with target
     moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin);
 

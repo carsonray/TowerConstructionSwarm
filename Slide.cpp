@@ -141,7 +141,7 @@ void TowerRobot::Slide::moveToBlock(double blockPos, double accel, double max) {
   } else if (blockPos > upperLimit) {
     blockPos = upperLimit;
   }
-
+  
   //Sets stepper settings
   stepper->setAcceleration(convertToRaw(accel));
   stepper->setMaxSpeed(convertToRaw(max));

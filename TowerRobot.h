@@ -355,7 +355,7 @@ class TowerRobot {
 		void home(double homePos);
 
 		void moveToBlock(int tower);
-		void moveToBlock(int tower, int blockNum);
+		void moveToBlock(int tower, double blockNum);
 
 		void load(int tower);
 		void load(int tower, int blockNum);
@@ -381,7 +381,7 @@ class TowerRobot {
 		int towerHeights[4] = {0, 0, 0, 0};
 
 		//Current number of block cargo
-		int cargo = 0;
+		int cargo = 0; 
 
 		//Margin for color sensor to read block
 		double sensorMargin = 0.15;
