@@ -216,7 +216,8 @@ class TowerRobot {
 
 				bool isOpen();
 				void setOpen(bool openState);
-
+				
+				bool isRunning();
 				void wait();
 
 				bool toggle();
@@ -364,7 +365,11 @@ class TowerRobot {
 		void unload(int tower);
 
 		int scanBlock(int tower, int blockNum);
+
 		void synchronize();
+
+		void loadWithCheck(int tower);
+		void loadWithCheck(int tower, int blockNum);
 	private:
 		Slide* slide;
 		Turret* turret;

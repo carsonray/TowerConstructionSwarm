@@ -83,13 +83,19 @@ int bufferColors[10] = {-2, -2, -2, -2, -2, -2, -2, -2, -2, -2};
 bool openTowers[4] = {true, true, true, true};
 
 void setup() {
-  randomSeed(analogRead(A0));
+  /*randomSeed(analogRead(A0));
   robot.setTowerHeights(3, 3, 3, 3);
   robot.home();
-  //robot.synchronize();
+  robot.synchronize();*/
+
+  robot.setTowerHeights(4, 0, 0, 0);
+  robot.home();
+  robot.synchronize();
+  robot.loadWithCheck(0);
 }
 
 void loop() {
+  /*
   if ((robot.getTowerHeight(targetTower) != 0) && openTowers[targetTower]) {
     //Ensures target tower is fully unloaded
     loadTower = targetTower;
@@ -111,6 +117,7 @@ void loop() {
 
   //Current block on tower
   currBlock = currHeight;
+  */
   
   //Finds actual tower height
   /*bool startedEmpty = false;
@@ -145,6 +152,7 @@ void loop() {
   //Updates tower height
   currHeight = robot.getTowerHeight(loadTower);
   */
+ /*
   //Whether the top of the tower was the target color
   bool startedTarget = false;
 
@@ -180,7 +188,7 @@ void loop() {
     }
     
     //Loads block
-    robot.load(loadTower, currBlock);
+    robot.loadWithCheck(loadTower, currBlock);
 
     if (startedTarget && (loadTower != targetTower)) {
       //Ensures target blocks are loaded on target tower
@@ -202,4 +210,5 @@ void loop() {
     //Locks tower if nothing should be loaded
     openTowers[loadTower] = false;
   }
+  */
 }

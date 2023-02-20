@@ -223,3 +223,40 @@ void TowerRobot::synchronize() {
     irt->update();
   }
 }
+
+//Checks for signal from other robots before loading
+void TowerRobot::loadWithCheck(int tower) {
+  //Loads from top of tower as default
+  loadWithCheck(tower, towerHeights[tower] - 1);
+}
+void TowerRobot::loadWithCheck(int tower, int blockNum) {
+  //Moves to correct tower and block
+  if (blockNum >= 0) {
+    moveToBlock(tower, blockNum);
+
+    //Waits for no signal that other robot is at same tower
+    int command, data;
+    while ((irt->receive(&command, &data)) && (command == IR_CURRENT_TOWER) && (data == turret->getTowerPos())) {
+      irt->waitReceive(2000);
+    }
+
+    //Sends own signal
+    irt->send(MASTER_ADDRESS, IR_CURRENT_TOWER, turret->getTowerPos());
+    irt->setSendRepeats(-1);
+    irt->setSendInterval(100, 500);
+
+    //Closes gripper
+    gripper->close();
+    while(gripper->isRunning()) {
+      irt->update();
+    }
+
+    //Stops signal
+    irt->setSendRepeats(0);
+    irt->update();
+
+    //Updates tower height and cargo
+    cargo = towerHeights[tower] - blockNum;
+    towerHeights[tower] -= cargo;
+  }
+}

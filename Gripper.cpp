@@ -47,9 +47,13 @@ void TowerRobot::Gripper::setOpen(bool openState) {
   waitTime = 1250;
 }
 
+bool TowerRobot::Gripper::isRunning() {
+  return (millis() - lastAction) < waitTime;
+}
+
 //Waits for action to complete
 void TowerRobot::Gripper::wait() {
-  while ((millis() - lastAction) < waitTime) {
+  while (isRunning()) {
     
   }
 }
