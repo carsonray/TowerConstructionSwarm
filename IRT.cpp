@@ -21,8 +21,14 @@ TowerRobot::IRT::IRT(int address, int sendPin, int recvPin) {
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
+  randomSeed(analogRead(A0));
   IrSender.begin(sendPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
   IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
+}
+
+//Gets address
+int TowerRobot::IRT::getAddress() {
+  return address;
 }
 
 //Turns sending on and off
@@ -152,11 +158,13 @@ void TowerRobot::IRT::waitReceive() {
 }
 
 //Waits until received or timeout
-void TowerRobot::IRT::waitReceive(int timeout) {
+bool TowerRobot::IRT::waitReceive(int timeout) {
   unsigned long timeoutStart = millis();
   while ((!recvExists) && ((millis() - timeoutStart) < timeout)) {
     update();
   }
+
+  return recvExists;
 }
 
 //Sets whether non-directed signals are relayed
@@ -175,9 +183,9 @@ void TowerRobot::IRT::update() {
       
       //Determines whether signal is addressed or has master address
       recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
-      
+
       //Auto relays non-directed commands
-      if (!recvExists && autoRelay) {
+      if ((!recvExists && autoRelay) || (recvAddress == MASTER_ADDRESS)) {
         IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
       }
     }
@@ -205,33 +213,39 @@ void TowerRobot::IRT::update() {
 
 //Synchronizes robots
 void TowerRobot::IRT::synchronize(int num, int interval) {
-  //Whether all robots are ready
-  bool allReady = false;
+  //Robot index
+  int i = 0;
 
-  while (!allReady) {
-    //Resets ready state
-    allReady = true;
+  //First robot to be ready
+  int firstReady = -1;
 
-    //Loops through robots
-    for (int i = CONTROL_ADDRESS + 1; i < CONTROL_ADDRESS + 1 + num; i++) {
-      //Sends status poll
-      send(i, IR_STATUS, IR_STATUS_POLL);
+  //Loops through robots
+  while (true) {
+    //Sends status poll
+    send(CONTROL_ADDRESS+1+i, IR_STATUS, IR_STATUS_POLL);
 
-      //Waits until received or timeout
-      waitReceive(interval);
+    //Waits until received or timeout
+    waitReceive(interval);
 
-      //Checks to see if robot is ready
-      unsigned int command, data;
-      if (receive(&command, &data)) {
-        allReady = allReady && (command == IR_STATUS) && (data == IR_STATUS_READY);
-      } else {
-        allReady = false;
+    //Checks to see if robot is ready
+    unsigned int command, data;
+    if (receive(&command, &data)) {
+      if ((command == IR_STATUS) && (data == IR_STATUS_READY)) {
+        if (firstReady == -1) {
+          firstReady = i;
+        } else if (i == (firstReady - 1 + num) % num) {
+          break;
+        }
       }
+      delay(DELAY_CYCLE*3);
+    } else {
+      firstReady = -1;
+    }
 
-      //Breaks if all robots are not ready
-      if (!allReady) {
-        break;
-      }
+    i++;
+    //Cycles back to first robot
+    if (i >= num) {
+      i = 0;
     }
   }
   

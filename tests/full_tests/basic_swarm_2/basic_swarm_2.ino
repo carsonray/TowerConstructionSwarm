@@ -51,10 +51,12 @@ TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS+2, 3, 5);
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 void setup() {
+  Serial.begin(9600);
   robot.setTowerHeights(4, 0, 0, 0);
   robot.home();
-  robot.synchronize();
+  //robot.synchronize();
   robot.loadWithCheck(0);
+  robot.unload(1);
 }
 
 void loop() {

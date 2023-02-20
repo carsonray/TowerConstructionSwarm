@@ -87,11 +87,12 @@ void setup() {
   robot.setTowerHeights(3, 3, 3, 3);
   robot.home();
   robot.synchronize();*/
-
+  Serial.begin(9600);
   robot.setTowerHeights(4, 0, 0, 0);
   robot.home();
-  robot.synchronize();
+  //robot.synchronize();
   robot.loadWithCheck(0);
+  robot.unload(1);
 }
 
 void loop() {

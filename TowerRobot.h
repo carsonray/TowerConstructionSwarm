@@ -32,6 +32,9 @@ namespace IRcommands {
 	//Data options
 	#define IR_STATUS_POLL 0x0
   	#define IR_STATUS_READY 0x1
+
+
+	#define IR_QUEUE_POLL 0x3
 	
   	#define IR_CURRENT_TOWER 0x1
 	#define IR_CURRENT_HEIGHT 0x2
@@ -316,6 +319,8 @@ class TowerRobot {
 
 				void begin();
 
+				int getAddress();
+
 				void setSendActive(bool active);
 
 				void send(unsigned int address, unsigned int command);
@@ -335,7 +340,7 @@ class TowerRobot {
 				bool receive(unsigned int*command, unsigned int*data);
 
 				void waitReceive();
-				void waitReceive(int timeout);
+				bool waitReceive(int timeout);
 
 				void setAutoRelay(bool active);
 

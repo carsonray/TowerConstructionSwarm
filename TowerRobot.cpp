@@ -63,6 +63,7 @@ void TowerRobot::waitSlideTurret() {
   bool slideRun = true;
   bool turretRun = true;
   while (slideRun || turretRun) {
+    irt->update();
     slideRun = slide->run();
     turretRun = turret->run();
   }
@@ -95,7 +96,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       //Moves to clear current tower
       if (slide->currentPosition() - (towerHeights[turret->getTowerPos()] + slide->getClearMargin()) < -slide->getStepError()) {
         slide->moveToClear(towerHeights[turret->getTowerPos()]);
-        slide->wait();
+        while(slide->run()) {
+          irt->update();
+        }
       }
 
       //Loops through towers between current and target
@@ -113,6 +116,8 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
           bool slideRun = true;
           bool turretRun = true;
           while (slideRun || turretRun) {
+            irt->update();
+
             slideRun = slide->run();
             turretRun = turret->run();
 
@@ -134,12 +139,16 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
 
       //Rotates final step to tower
       turret->moveToTower(tower);
-      turret->wait();
+      while(turret->run()) {
+        irt->update();
+      }
     }
 
     //Moves to correct block position
     slide->moveToBlock(blockNum);
-    slide->wait();
+    while(slide->run()) {
+      irt->update();
+    }
   }
 }
 
@@ -201,6 +210,7 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
+  irt->setAutoRelay(true);
   unsigned int command, data;
   while (true) {
     //Waits until data is received
@@ -222,6 +232,7 @@ void TowerRobot::synchronize() {
     }
     irt->update();
   }
+  irt->setAutoRelay(false);
 }
 
 //Checks for signal from other robots before loading
@@ -232,28 +243,28 @@ void TowerRobot::loadWithCheck(int tower) {
 void TowerRobot::loadWithCheck(int tower, int blockNum) {
   //Moves to correct tower and block
   if (blockNum >= 0) {
+    Serial.println("Sending");
+    irt->send(MASTER_ADDRESS, IR_QUEUE_POLL, irt->getAddress());
+    irt->setSendInterval(100, 500);
+    irt->setSendRepeats(-1);
+
     moveToBlock(tower, blockNum);
 
-    //Waits for no signal that other robot is at same tower
-    int command, data;
-    while ((irt->receive(&command, &data)) && (command == IR_CURRENT_TOWER) && (data == turret->getTowerPos())) {
-      irt->waitReceive(2000);
-    }
+    Serial.println("Stop sending");
+    irt->setSendRepeats(0);
+    irt->update();
 
-    //Sends own signal
-    irt->send(MASTER_ADDRESS, IR_CURRENT_TOWER, turret->getTowerPos());
-    irt->setSendRepeats(-1);
-    irt->setSendInterval(100, 500);
+    //Received information
+    int command, data;
+
+    if (irt->receive(&command, &data) && (command == IR_QUEUE_POLL) && (data > irt->getAddress())) {
+      Serial.println("Yielding");
+      delay(1000);
+    }
 
     //Closes gripper
     gripper->close();
-    while(gripper->isRunning()) {
-      irt->update();
-    }
-
-    //Stops signal
-    irt->setSendRepeats(0);
-    irt->update();
+    gripper->wait();
 
     //Updates tower height and cargo
     cargo = towerHeights[tower] - blockNum;
