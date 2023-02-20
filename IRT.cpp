@@ -222,7 +222,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   //Loops through robots
   while (true) {
     //Sends status poll
-    send(CONTROL_ADDRESS+1+i, IR_STATUS, IR_STATUS_POLL);
+    send(CONTROL_ADDRESS+1+i, IR_POLL, irt->getAddress());
 
     //Waits until received or timeout
     waitReceive(interval);
@@ -230,7 +230,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
     //Checks to see if robot is ready
     unsigned int command, data;
     if (receive(&command, &data)) {
-      if ((command == IR_STATUS) && (data == IR_STATUS_READY)) {
+      if ((command == IR_DONE) && (data == CONTROL_ADDRESS+1+i)) {
         if (firstReady == -1) {
           firstReady = i;
         } else if (i == (firstReady - 1 + num) % num) {
@@ -250,7 +250,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   }
   
   //Sends ready signal
-  send(MASTER_ADDRESS, IR_STATUS, IR_STATUS_READY);
+  send(MASTER_ADDRESS, IR_DONE, irt->getAddress());
   setSendInterval(200);
   setSendRepeats(5);
   waitSend();

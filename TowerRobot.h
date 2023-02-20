@@ -26,22 +26,12 @@ namespace IRcommands {
 	//Controller address
 	#define CONTROL_ADDRESS 0x1
 	
-	//Command
-  	#define IR_STATUS 0x0
-
-	//Data options
-	#define IR_STATUS_POLL 0x0
-  	#define IR_STATUS_READY 0x1
-
-
-	#define IR_QUEUE_POLL 0x3
+	//Command                                                                                                                                    
+  	#define IR_POLL 0x0
+	#define IR_DONE 0x1
 	
-  	#define IR_CURRENT_TOWER 0x1
-	#define IR_CURRENT_HEIGHT 0x2
-
-	#define IR_TURRET 0xA
-	#define IR_SLIDE 0xB
-	#define IR_GRIPPER 0xC
+  	#define IR_CURRENT_TOWER 0x2                                                                                                                                 
+	#define IR_CURRENT_HEIGHT 0x3
 }
 
 class TowerRobot {

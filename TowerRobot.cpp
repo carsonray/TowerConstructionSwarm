@@ -220,15 +220,14 @@ void TowerRobot::synchronize() {
     //Delays response
     delay(DELAY_CYCLE);
     
-    //Checks to ensure command is status related
-    if (command == IR_STATUS) {
-      if (data == IR_STATUS_POLL) {
+    //Checks to ensure command is poll
+    if ((command == IR_POLL) && (data == CONTROL_ADDRESS)) {
+      if  {
         //Sends ready status to controller
-        irt->send(CONTROL_ADDRESS, IR_STATUS, IR_STATUS_READY);
-      } else if (data == IR_STATUS_READY) {
-        //Ends synchronization if controller sends ready signal
-        break;
+        irt->send(CONTROL_ADDRESS, IR_POLL, irt->getAddress());
       }
+    } else if ((command == IR_DONE) && (data == CONTROL_ADDRESS)) {
+      break;
     }
     irt->update();
   }
