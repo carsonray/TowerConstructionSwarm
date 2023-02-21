@@ -87,9 +87,6 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
     turret->moveToTower(tower);
     waitSlideTurret();
   } else {
-    //Begins yielding
-    beginYield();
-
     //Corrects block number to be greater than tower height
     if (blockNum < towerHeights[tower]) {
       blockNum = towerHeights[tower];
@@ -153,9 +150,6 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
     while(slide->run()) {
       updateYield();
     }
-
-    //Ends yielding
-    endYield();
   }
 }
 
@@ -167,6 +161,9 @@ void TowerRobot::load(int tower) {
 void TowerRobot::load(int tower, int blockNum) {
   //Moves to correct tower and block
   if (blockNum >= 0) {
+    //Begins yielding
+    beginYield();
+
     moveToBlock(tower, blockNum);
 
     //Closes gripper
@@ -182,12 +179,18 @@ void TowerRobot::load(int tower, int blockNum) {
 //Unloads block(s) on top of tower
 void TowerRobot::unload(int tower) {
   if (cargo > 0) {
+    //Begins yielding
+    beginYield();
+
     //Moves one block above top of tower
     moveToBlock(tower, towerHeights[tower]);
 
     //Opens gripper
     gripper->open();
     gripper->wait();
+
+    //Ends yielding
+    endYield();
 
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
@@ -261,7 +264,6 @@ void TowerRobot::beginYield() {
 
     //Resets closest tower
     closestTower = turret->closestTower();
-    prevClosestTower = closestTower;
 
     irt->send(MASTER_ADDRESS, IR_POLL, irt->getAddress());
     irt->setSendInterval(500, 1000);
@@ -299,15 +301,11 @@ bool TowerRobot::updateYield() {
         if ((command == IR_POLL) && (data < irt->getAddress())) {
           //If polling signal detected with subordinate address
 
-          //Updates closest tower
-          prevClosestTower = closestTower;
-          closestTower = turret->closestTower();
-
           //Delays response
           delay(DELAY_CYCLE);
 
           //Stops blocking previous
-          if (prevClosestTower != closestTower) {
+          if (closestTower != turret->closestTower()) {
             Serial.println("Send Done");
             irt->send(MASTER_ADDRESS, IR_DONE, prevClosestTower);
           }

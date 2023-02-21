@@ -393,9 +393,6 @@ class TowerRobot {
 		//Current closest tower
 		int closestTower = 0;
 
-		//Previous closest tower
-		int prevClosestTower = 0;
-
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};
 
