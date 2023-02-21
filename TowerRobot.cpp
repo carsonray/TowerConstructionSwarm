@@ -245,6 +245,11 @@ void TowerRobot::synchronize() {
   }
 }
 
+//Sets whether undirected commands are automatically relayed
+void TowerRobot::setAutoRelay(bool active) {
+  irt->setAutoRelay(active);
+}
+
 //Sets whether movements are yielded to other robots
 void TowerRobot::setYieldActive(bool active) {
   //If state is changed
@@ -307,7 +312,7 @@ bool TowerRobot::updateYield() {
           //Stops blocking previous
           if (closestTower != turret->closestTower()) {
             Serial.println("Send Done");
-            irt->send(MASTER_ADDRESS, IR_DONE, prevClosestTower);
+            irt->send(MASTER_ADDRESS, IR_DONE, closestTower);
           }
 
           Serial.println("Send Info");

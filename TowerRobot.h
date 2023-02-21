@@ -365,7 +365,8 @@ class TowerRobot {
 		int scanBlock(int tower, int blockNum);
 
 		void synchronize();
-
+		
+		void setAutoRelay(bool active);
 		void setYieldActive(bool active);
 
 		void beginYield();
