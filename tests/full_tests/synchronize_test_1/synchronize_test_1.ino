@@ -52,6 +52,7 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 void setup() {
   robot.setTowerHeights(5, 0, 0, 0);
+  robot.setAutoRelay(true);
   robot.home();
   robot.synchronize();
   robot.moveToBlock(0, 3);

@@ -220,7 +220,6 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
   if (irtInit) {
-    irt->setAutoRelay(true);
     unsigned int command, data;
     while (true) {
       //Waits until data is received
@@ -240,7 +239,6 @@ void TowerRobot::synchronize() {
       }
       irt->update();
     }
-    irt->setAutoRelay(false);
   }
 }
 
@@ -286,7 +284,7 @@ void TowerRobot::endYield() {
 bool TowerRobot::updateYield() {
   bool isYielding = false;
   bool blocked = false;
-  int address, command, data;
+  unsigned int address, command, data;
 
   while (irtInit && yieldActive) {
     //Checks to see whether data was received

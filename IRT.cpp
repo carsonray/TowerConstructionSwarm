@@ -202,6 +202,7 @@ void TowerRobot::IRT::update() {
       //Auto relays non-directed commands
       if ((!recvExists && autoRelay) || (recvAddress == MASTER_ADDRESS)) {
         IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
+        waitSend();
       }
     }
 
