@@ -87,6 +87,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
     turret->moveToTower(tower);
     waitSlideTurret();
   } else {
+    //Begins yielding
+    beginYield();
+
     //Corrects block number to be greater than tower height
     if (blockNum < towerHeights[tower]) {
       blockNum = towerHeights[tower];
@@ -150,6 +153,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
     while(slide->run()) {
       updateYield();
     }
+
+    //Ends yielding
+    endYield();
   }
 }
 
@@ -243,25 +249,37 @@ void TowerRobot::synchronize() {
 //Sets whether movements are yielded to other robots
 void TowerRobot::setYieldActive(bool active) {
   //If state is changed
-  if (active != yieldActive) {
-    yieldActive = active;
-    if (yieldActive) {
-      //Begins yielding
-      beginYield();
-    } else {
+  if (active != yieldEnabled) {
+    yieldEnabled = active;
+    if (!yieldEnabled) {
       //Stops polling signal
-      irt->setSendRepeats(0);
-      irt->update();
+      endYield();
     }
   }
 }
 
 //Begins polling signal
 void TowerRobot::beginYield() {
-  if (irtInit && yieldActive) {
+  if (irtInit && yieldEnabled) {
+    yieldActive = true;
+
+    //Resets closest tower
+    closestTower = turret->closestTower();
+    prevClosestTower = closestTower;
+
     irt->send(MASTER_ADDRESS, IR_POLL, irt->getAddress());
     irt->setSendInterval(100, 500);
     irt->setSendRepeats(-1);
+  }
+}
+
+//Ends polling signal
+void TowerRobot::endYield() {
+  if (irtInit) {
+    yieldActive = false;
+
+    irt->setSendRepeats(0);
+    irt->update();
   }
 }
 
@@ -279,16 +297,21 @@ bool TowerRobot::updateYield() {
         //If command was not directed
         if ((command == IR_POLL) && (data < irt->getAddress())) {
           //If polling signal detected with subordinate address
+          
+
+          //Updates closest tower
+          prevClosestTower = closestTower;
+          closestTower = turret->closestTower();
 
           //Send tower information
-          irt->send(data, IR_CLOSEST_TOWER, turret->closestTower());
+          irt->send(data, IR_CLOSEST_TOWER, closestTower);
           irt->waitSend();
-          irt->send(data, IR_UPDATE_HEIGHT, towerHeights[turret->closestTower()]);
+          irt->send(data, IR_UPDATE_HEIGHT, towerHeights[closestTower]);
           irt->waitSend();
 
           //Stops blocking previous
-          if (turret->prevClosestTower() != turret->closestTower()) {
-            irt->send(MASTER_ADDRESS, IR_DONE, turret->prevClosestTower());
+          if (prevClosestTower != closestTower) {
+            irt->send(MASTER_ADDRESS, IR_DONE, prevClosestTower);
           }
 
           //Resumes polling signal

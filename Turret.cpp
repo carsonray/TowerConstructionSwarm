@@ -88,6 +88,21 @@ int TowerRobot::Turret::getTowerPos() {
   return currTowerPos;
 }
 
+//Gets closest tower position
+int TowerRobot::Turret::closestTower() {
+  double minDist = 0;
+  int minPos = 0;
+  for (int i = 0; i < numPos(); i++) {
+    double dist = abs(localize(towerPos[i] - turret->currentPosition()));
+    if ((dist < minDist) || (i == 0)) {
+      minDist = dist;
+      minPos = i;
+    }
+  }
+
+  return minPos;
+}
+
 //Gets number of tower positions
 int TowerRobot::Turret::numPos() {
   return sizeof(towerPos)/sizeof(towerPos[0]);

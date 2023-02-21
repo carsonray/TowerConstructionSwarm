@@ -158,6 +158,8 @@ class TowerRobot {
 
 				int getTowerPos();
 
+				int closestTower();
+
 				int nextTower(int change);
 				int nextTower(int curr, int change);
 
@@ -367,6 +369,7 @@ class TowerRobot {
 		void setYieldActive(bool active);
 
 		void beginYield();
+		void endYield();
 		bool updateYield();
 	private:
 		Slide* slide;
@@ -382,7 +385,16 @@ class TowerRobot {
 		bool irtInit = false;
 
 		//Whether movements are yielded to other robots
+		bool yieldEnabled = false;
+
+		//Whether yielding cycle is currently running
 		bool yieldActive = false;
+
+		//Current closest tower
+		int closestTower = 0;
+
+		//Previous closest tower
+		int prevClosestTower = 0;
 
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};
