@@ -93,13 +93,14 @@ int TowerRobot::Turret::closestTower() {
   double minDist = 0;
   int minPos = 0;
   for (int i = 0; i < numPos(); i++) {
-    double dist = abs(localize(towerPos[i] - turret->currentPosition()));
+    double dist = abs(localize(towerPos[i] - currentPosition()));
+    
     if ((dist < minDist) || (i == 0)) {
       minDist = dist;
       minPos = i;
     }
   }
-
+  
   return minPos;
 }
 

@@ -53,9 +53,10 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 void setup() {
   Serial.begin(9600);
   robot.setTowerHeights(4, 0, 0, 0);
+  robot.setYieldActive(true);
   robot.home();
   //robot.synchronize();
-  robot.loadWithCheck(0);
+  robot.load(0);
   robot.unload(1);
 }
 

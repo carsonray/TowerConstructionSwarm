@@ -237,7 +237,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   //Loops through robots
   while (true) {
     //Sends status poll
-    send(CONTROL_ADDRESS+1+i, IR_POLL, irt->getAddress());
+    send(CONTROL_ADDRESS+1+i, IR_POLL, address);
 
     //Waits until received or timeout
     waitReceive(interval);
@@ -265,7 +265,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   }
   
   //Sends ready signal
-  send(MASTER_ADDRESS, IR_DONE, irt->getAddress());
+  send(MASTER_ADDRESS, IR_DONE, address);
   setSendInterval(200);
   setSendRepeats(5);
   waitSend();
