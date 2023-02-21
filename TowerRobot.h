@@ -30,8 +30,8 @@ namespace IRcommands {
   	#define IR_POLL 0x0
 	#define IR_DONE 0x1
 	
-  	#define IR_CURRENT_TOWER 0x2                                                                                                                                 
-	#define IR_CURRENT_HEIGHT 0x3
+  	#define IR_CLOSEST_TOWER 0x2   
+	#define IR_UPDATE_HEIGHT 0x3                                                                                                                              
 }
 
 class TowerRobot {
@@ -328,6 +328,7 @@ class TowerRobot {
 				void setReceiveActive(bool active);
 
 				bool receive(unsigned int*command, unsigned int*data);
+				bool receive(unsigned int*address, unsigned int*command, unsigned int*data);
 
 				void waitReceive();
 				bool waitReceive(int timeout);
@@ -363,8 +364,10 @@ class TowerRobot {
 
 		void synchronize();
 
-		void loadWithCheck(int tower);
-		void loadWithCheck(int tower, int blockNum);
+		void setYieldActive(bool active);
+
+		void beginYield();
+		bool updateYield();
 	private:
 		Slide* slide;
 		Turret* turret;
@@ -377,6 +380,9 @@ class TowerRobot {
 
 		//Whether infrared tranciever is initialized
 		bool irtInit = false;
+
+		//Whether movements are yielded to other robots
+		bool yieldActive = false;
 
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};

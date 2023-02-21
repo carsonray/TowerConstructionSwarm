@@ -63,7 +63,8 @@ void TowerRobot::waitSlideTurret() {
   bool slideRun = true;
   bool turretRun = true;
   while (slideRun || turretRun) {
-    irt->update();
+    updateYield();
+
     slideRun = slide->run();
     turretRun = turret->run();
   }
@@ -97,7 +98,7 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       if (slide->currentPosition() - (towerHeights[turret->getTowerPos()] + slide->getClearMargin()) < -slide->getStepError()) {
         slide->moveToClear(towerHeights[turret->getTowerPos()]);
         while(slide->run()) {
-          irt->update();
+          updateYield();
         }
       }
 
@@ -116,7 +117,7 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
           bool slideRun = true;
           bool turretRun = true;
           while (slideRun || turretRun) {
-            irt->update();
+            updateYield();
 
             slideRun = slide->run();
             turretRun = turret->run();
@@ -140,14 +141,14 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       //Rotates final step to tower
       turret->moveToTower(tower);
       while(turret->run()) {
-        irt->update();
+        updateYield();
       }
     }
 
     //Moves to correct block position
     slide->moveToBlock(blockNum);
     while(slide->run()) {
-      irt->update();
+      updateYield();
     }
   }
 }
@@ -190,7 +191,7 @@ void TowerRobot::unload(int tower) {
 
 //Scans color of particular block
 int TowerRobot::scanBlock(int tower, int blockNum) {
-  if (true/*colorInit*/) {
+  if (colorInit) {
     //Moves to tower clockwise from target to align color sensor with target
     moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin);
 
@@ -205,68 +206,115 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     }
 
     return blockColor;
+  } else {
+    return -1;
   }
 }
 
 //Synchronizes so all robots start at the same time
 void TowerRobot::synchronize() {
-  irt->setAutoRelay(true);
-  unsigned int command, data;
-  while (true) {
-    //Waits until data is received
-    irt->waitReceive();
-    irt->receive(&command, &data);
+  if (irtInit) {
+    irt->setAutoRelay(true);
+    unsigned int command, data;
+    while (true) {
+      //Waits until data is received
+      irt->waitReceive();
+      irt->receive(&command, &data);
 
-    //Delays response
-    delay(DELAY_CYCLE);
-    
-    //Checks to ensure command is poll
-    if ((command == IR_POLL) && (data == CONTROL_ADDRESS)) {
-      if  {
-        //Sends ready status to controller
-        irt->send(CONTROL_ADDRESS, IR_POLL, irt->getAddress());
+      //Delays response
+      delay(DELAY_CYCLE);
+      
+      //Checks to ensure command is poll
+      if (command == IR_POLL) {
+        if  {
+          //Sends ready status to controller
+          irt->send(CONTROL_ADDRESS, IR_POLL, irt->getAddress());
+        }
+      } else if (command == IR_DONE) {
+        //Stops if all robots ready
+        break;
       }
-    } else if ((command == IR_DONE) && (data == CONTROL_ADDRESS)) {
-      break;
+      irt->update();
     }
-    irt->update();
+    irt->setAutoRelay(false);
   }
-  irt->setAutoRelay(false);
 }
 
-//Checks for signal from other robots before loading
-void TowerRobot::loadWithCheck(int tower) {
-  //Loads from top of tower as default
-  loadWithCheck(tower, towerHeights[tower] - 1);
+//Sets whether movements are yielded to other robots
+void TowerRobot::setYieldActive(bool active) {
+  //If state is changed
+  if (active != yieldActive) {
+    yieldActive = active;
+    if (yieldActive) {
+      //Begins yielding
+      beginYield();
+    } else {
+      //Stops polling signal
+      irt->setSendRepeats(0);
+      irt->update();
+    }
+  }
 }
-void TowerRobot::loadWithCheck(int tower, int blockNum) {
-  //Moves to correct tower and block
-  if (blockNum >= 0) {
-    Serial.println("Sending");
-    irt->send(MASTER_ADDRESS, IR_QUEUE_POLL, irt->getAddress());
+
+//Begins polling signal
+void TowerRobot::beginYield() {
+  if (irtInit && yieldActive) {
+    irt->send(MASTER_ADDRESS, IR_POLL, irt->getAddress());
     irt->setSendInterval(100, 500);
     irt->setSendRepeats(-1);
+  }
+}
 
-    moveToBlock(tower, blockNum);
+//Updates yield protocol
+bool TowerRobot::updateYield() {
+  bool isYielding = false;
+  bool blocked = false;
+  int address, command, data;
 
-    Serial.println("Stop sending");
-    irt->setSendRepeats(0);
+  while (irtInit && yieldActive) {
+    //Checks to see whether data was received
     irt->update();
+    if (irt->receive(&address, &command, &data)) {
+      if (address == MASTER_ADDRESS) {
+        //If command was not directed
+        if ((command == IR_POLL) && (data < irt->getAddress())) {
+          //If polling signal detected with subordinate address
 
-    //Received information
-    int command, data;
+          //Send tower information
+          irt->send(data, IR_CLOSEST_TOWER, turret->closestTower());
+          irt->waitSend();
+          irt->send(data, IR_UPDATE_HEIGHT, towerHeights[turret->closestTower()]);
+          irt->waitSend();
 
-    if (irt->receive(&command, &data) && (command == IR_QUEUE_POLL) && (data > irt->getAddress())) {
-      Serial.println("Yielding");
-      delay(1000);
+          //Stops blocking previous
+          if (turret->prevClosestTower() != turret->closestTower()) {
+            irt->send(MASTER_ADDRESS, IR_DONE, turret->prevClosestTower());
+          }
+
+          //Resumes polling signal
+          beginYield();
+        } else if ((command == IR_DONE) && (data == turret->closestTower())) {
+          //Stops yielding if interferance at tower no longer exists
+          isYielding = false;
+        }
+      } else if (address == irt->getAddress()) {
+        //If command was directed
+        if ((command == IR_CLOSEST_TOWER) && (data == turret->closestTower())) {
+          //If interferance is detected
+          isYielding = true;
+          blocked = true;
+        } else if (command == IR_UPDATE_HEIGHT) {
+          //Updates tower height
+          towerHeights[turret->closestTower()] = data;
+        }
+      }
     }
 
-    //Closes gripper
-    gripper->close();
-    gripper->wait();
-
-    //Updates tower height and cargo
-    cargo = towerHeights[tower] - blockNum;
-    towerHeights[tower] -= cargo;
+    //Resumes if no longer yielding
+    if (!isYielding) {
+      break;
+    }
   }
+
+  return blocked;
 }

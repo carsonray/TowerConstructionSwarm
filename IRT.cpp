@@ -149,6 +149,21 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
     return false;
   }
 }
+bool TowerRobot::IRT::receive(unsigned int*address, unsigned int*command, unsigned int*data) {
+  //Ensures signal is availiable
+  if (recvExists) {
+    //Reads components
+    *address = recvAddress;
+    *command = recvCommand;
+    *data = recvData;
+
+    //Turns off receive
+    recvExists = false;
+    return true;
+  } else {
+    return false;
+  }
+}
 
 //Waits until something is received
 void TowerRobot::IRT::waitReceive() {
