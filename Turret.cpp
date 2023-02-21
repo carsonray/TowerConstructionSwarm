@@ -94,7 +94,7 @@ int TowerRobot::Turret::closestTower() {
   int minPos = 0;
   for (int i = 0; i < numPos(); i++) {
     double dist = abs(localize(towerPos[i] - currentPosition()));
-    
+
     if ((dist < minDist) || (i == 0)) {
       minDist = dist;
       minPos = i;
@@ -202,8 +202,13 @@ void TowerRobot::Turret::moveToCarry(int tower) {
   moveToCarry(tower, defAccel, defMax);
 }
 void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
-  //Difference to target position
-  double diff = localize(towerPos[tower] - currentPosition());
+  //Direction to target position
+  double dir = Utils::sign(localize(towerPos[tower] - currentPosition()));
+
+  //Ensures dir is not zero
+  if (dir == 0) {
+    dir = 1;
+  }
 
   //Corrects target position with carry offset
   double target = towerPos[tower] - (carryOffset * Utils::sign(diff));

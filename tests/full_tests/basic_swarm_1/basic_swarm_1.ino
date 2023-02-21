@@ -195,25 +195,32 @@ void loop() {
       currBlock = currHeight - cargoLimit;
     }
     
-    //Loads block
-    robot.loadCheck(loadTower, currBlock);
-
-    if (startedTarget && (loadTower != targetTower)) {
-      //Ensures target blocks are loaded on target tower
-      unloadTower = targetTower;
-    } else {
-      //Unloads on random tower
-      while (true) {
-        unloadTower = random(0, 4);
-
-        //Ensures uneccesary blocks are not loaded on same load tower or target tower
-        if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
-          break;
-        }
-      }
+    //Loads block if not blocked
+    if (!robot.load(loadTower, currBlock)) {
+      return;
     }
 
-    robot.unload(unloadTower);
+    //Loops until unloaded
+    while (true) {
+      if (startedTarget && (loadTower != targetTower)) {
+        //Ensures target blocks are unloaded on target tower
+        unloadTower = targetTower;
+      } else {
+        //Unloads on random tower
+        while (true) {
+          unloadTower = random(0, 4);
+
+          //Ensures uneccesary blocks are not unloaded on same load tower or target tower
+          if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
+            break;
+          }
+        }
+      }
+
+      if (robot.unload(unloadTower))) {
+        break;
+      }
+    }
   } else if (currBlock == 0) {
     //Locks tower if nothing should be loaded
     openTowers[loadTower] = false;

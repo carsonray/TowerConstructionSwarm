@@ -184,14 +184,14 @@ void loop() {
     robot.loadCheck(loadTower, currBlock);
 
     if (startedTarget && (loadTower != targetTower)) {
-      //Ensures target blocks are loaded on target tower
+      //Ensures target blocks are unloaded on target tower
       unloadTower = targetTower;
     } else {
       //Unloads on random tower
       while (true) {
         unloadTower = random(0, 4);
 
-        //Ensures uneccesary blocks are not loaded on same load tower or target tower
+        //Ensures uneccesary blocks are not unloaded on same load tower or target tower
         if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
           break;
         }

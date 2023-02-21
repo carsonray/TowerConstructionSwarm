@@ -59,23 +59,27 @@ void TowerRobot::home(double homePos) {
   slide->home(homePos);
 }
 
-void TowerRobot::waitSlideTurret() {
+bool TowerRobot::waitSlideTurret() {
   bool slideRun = true;
   bool turretRun = true;
   while (slideRun || turretRun) {
-    updateYield();
+    if (!updateYield()) {
+      return false;
+    }
 
     slideRun = slide->run();
     turretRun = turret->run();
   }
+
+  return true;
 }
 
 //Moves to tower and block position
-void TowerRobot::moveToBlock(int tower) {
+bool TowerRobot::moveToBlock(int tower) {
   //Moves to top of tower as default
-  moveToBlock(tower, towerHeights[tower] - 1);
+  return moveToBlock(tower, towerHeights[tower] - 1);
 }
-void TowerRobot::moveToBlock(int tower, double blockNum) {
+bool TowerRobot::moveToBlock(int tower, double blockNum) {
   if (cargo == 0) {
     //No cargo
 
@@ -85,7 +89,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
     //Moves to correct position
     slide->moveToBlock(blockNum);
     turret->moveToTower(tower);
-    waitSlideTurret();
+    if (!waitSlideTurret()) {
+      return false;
+    }
   } else {
     //Corrects block number to be greater than tower height
     if (blockNum < towerHeights[tower]) {
@@ -98,7 +104,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       if (slide->currentPosition() - (towerHeights[turret->getTowerPos()] + slide->getClearMargin()) < -slide->getStepError()) {
         slide->moveToClear(towerHeights[turret->getTowerPos()]);
         while(slide->run()) {
-          updateYield();
+          if (!updateYield()) {
+            return false;
+          }
         }
       }
 
@@ -117,7 +125,9 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
           bool slideRun = true;
           bool turretRun = true;
           while (slideRun || turretRun) {
-            updateYield();
+            if (!updateYield()) {
+              return false;
+            }
 
             slideRun = slide->run();
             turretRun = turret->run();
@@ -141,30 +151,38 @@ void TowerRobot::moveToBlock(int tower, double blockNum) {
       //Rotates final step to tower
       turret->moveToTower(tower);
       while(turret->run()) {
-        updateYield();
+        if (!updateYield()) {
+          return false;
+        }
       }
     }
 
     //Moves to correct block position
     slide->moveToBlock(blockNum);
     while(slide->run()) {
-      updateYield();
+      if (!updateYield()) {
+        return false;
+      }
     }
   }
+
+  return true;
 }
 
 //Loads block(s) from position on tower
-void TowerRobot::load(int tower) {
+bool TowerRobot::load(int tower) {
   //Loads from top of tower as default
-  load(tower, towerHeights[tower] - 1);
+  return load(tower, towerHeights[tower] - 1);
 }
-void TowerRobot::load(int tower, int blockNum) {
+bool TowerRobot::load(int tower, int blockNum) {
   //Moves to correct tower and block
   if (blockNum >= 0) {
     //Begins yielding
     beginYield();
 
-    moveToBlock(tower, blockNum);
+    if (!moveToBlock(tower, blockNum)) {
+      return false;
+    }
 
     //Closes gripper
     gripper->close();
@@ -174,16 +192,20 @@ void TowerRobot::load(int tower, int blockNum) {
     cargo = towerHeights[tower] - blockNum;
     towerHeights[tower] -= cargo;
   }
+
+  return true;
 }
 
 //Unloads block(s) on top of tower
-void TowerRobot::unload(int tower) {
+bool TowerRobot::unload(int tower) {
   if (cargo > 0) {
     //Begins yielding
     beginYield();
 
     //Moves one block above top of tower
-    moveToBlock(tower, towerHeights[tower]);
+    if (!moveToBlock(tower, towerHeights[tower])) {
+      return false;
+    }
 
     //Opens gripper
     gripper->open();
@@ -196,13 +218,17 @@ void TowerRobot::unload(int tower) {
     towerHeights[tower] += cargo;
     cargo = 0;
   }
+
+  return true;
 }
 
 //Scans color of particular block
 int TowerRobot::scanBlock(int tower, int blockNum) {
   if (colorInit) {
     //Moves to tower clockwise from target to align color sensor with target
-    moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin);
+    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
+      return -2;
+    }
 
     //Gets color of block
     int blockColor = colorSensor->getBlockColor();
@@ -339,6 +365,9 @@ bool TowerRobot::updateYield() {
           //If interferance is detected
           isYielding = true;
           blocked = true;
+
+          //Moves to carry position to avoid interference
+          turret->moveToCarry(turret->closestTower());
         } else if (command == IR_UPDATE_HEIGHT) {
           Serial.println("Updating");
           Serial.println(data);
