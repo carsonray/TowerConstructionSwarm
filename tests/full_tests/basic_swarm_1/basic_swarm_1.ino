@@ -79,6 +79,9 @@ int checkColor;
 //Buffer array to fill with colors
 int bufferColors[10] = {-2, -2, -2, -2, -2, -2, -2, -2, -2, -2};
 
+//Difference between buffer array and actual tower
+int bufferDiff = 0;
+
 //Array to show which towers are availiable
 bool openTowers[4] = {true, true, true, true};
 
@@ -117,8 +120,6 @@ void loop() {
   
   //Gets predicted tower height
   currHeight = robot.getTowerHeight(loadTower);
-
-  //Current block on tower
   currBlock = currHeight;
   */
   
@@ -152,8 +153,12 @@ void loop() {
     }
   }
 
+  //Gets offset of buffer array if height changed
+  bufferDiff = robot.getTowerHeight(loadTower) - currHeight;
+
   //Updates tower height
   currHeight = robot.getTowerHeight(loadTower);
+  currBlock = currHeight;
   */
  /*
   //Whether the top of the tower was the target color
@@ -165,7 +170,7 @@ void loop() {
     currBlock--;
 
     //If color is not read, reads it in
-    checkColor = bufferColors[currBlock];
+    checkColor = bufferColors[currBlock + bufferDiff];
     if (checkColor == -2) {
       checkColor = robot.scanBlock(loadTower, currBlock);
     }
@@ -191,7 +196,7 @@ void loop() {
     }
     
     //Loads block
-    robot.loadWithCheck(loadTower, currBlock);
+    robot.loadCheck(loadTower, currBlock);
 
     if (startedTarget && (loadTower != targetTower)) {
       //Ensures target blocks are loaded on target tower
