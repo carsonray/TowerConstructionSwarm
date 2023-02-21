@@ -354,5 +354,27 @@ bool TowerRobot::updateYield() {
     }
   }
 
-  return blocked;
+  return !blocked;
+}
+
+void TowerRobot::remoteControl() {
+  if (irtInit) {
+    irt->update();
+    unsigned int command, data;
+    if (irt->receive(&command, &data)) {
+      if (command == IR_SLIDE) {
+        slide->moveToBlock(data);
+      } else if (command == IR_TURRET) {
+        turret->moveToTower(data);
+      } else if (command == IR_CARRY) {
+        turret->moveToCarry(data);
+      } else if (command == IR_GRIPPER) {
+        if (data == 0) {
+          gripper->open();
+        } else {
+          gripper->close();
+        }
+      }
+    }
+  }
 }

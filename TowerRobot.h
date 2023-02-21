@@ -31,7 +31,12 @@ namespace IRcommands {
 	#define IR_DONE 0x1
 	
   	#define IR_CLOSEST_TOWER 0x2   
-	#define IR_UPDATE_HEIGHT 0x3                                                                                                                              
+	#define IR_UPDATE_HEIGHT 0x3
+
+	#define IR_SLIDE 0xA
+	#define IR_TURRET 0xB
+	#define IR_CARRY 0xC
+	#define IR_GRIPPER 0xD                                                                                                                            
 }
 
 class TowerRobot {
@@ -372,6 +377,8 @@ class TowerRobot {
 		void beginYield();
 		void endYield();
 		bool updateYield();
+
+		void remoteControl();
 	private:
 		Slide* slide;
 		Turret* turret;
