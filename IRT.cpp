@@ -92,9 +92,13 @@ void TowerRobot::IRT::resetSendRepeats() {
   currRepeats = 0;
 }
 
-//Resets last send time
-void TowerRobot::IRT::resetLastSend() {
+//Sets intervals
+void TowerRobot::IRT::useInterval() {
+  //Updates last send time
   lastSend = millis();
+
+  //Calculates new interval
+  currInterval = random(minInterval, maxInterval);
 }
 
 //Whether transceiver is currently sending
@@ -196,24 +200,17 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
-    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW) {
-      Serial.println("Overflow");
-    }
     //Ensures protocol is correct and is not interfering with sending
     if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
-      Serial.println("Received");
       //Unpacks signal
       unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
-      Serial.println(recvAddress);
-      Serial.println(recvCommand);
-      Serial.println(recvData);
       
       //Determines whether signal is addressed or has master address
       recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
 
       //Auto relays non-directed commands
-      if ((!recvExists && autoRelay) || (recvAddress == MASTER_ADDRESS)) {
-        IrSender.sendNEC(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command, 0);
+      if (!recvExists && autoRelay) {
+        send(recvAddress, recvCommand, recvData);
         waitSend();
       }
     }
@@ -225,14 +222,9 @@ void TowerRobot::IRT::update() {
   if (sendActive) {
     //Checks to see if their are still repeats left and interval is reached
     if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
-      Serial.println("Sending");
       IrSender.sendNEC(sendAddress, sendCommand, 0);
 
-      //Updates last send time
-      lastSend = millis();
-
-      //Calculates new interval
-      currInterval = random(minInterval, maxInterval);
+      useInterval();
 
       //Increments repeats
       currRepeats++;
@@ -251,7 +243,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   //Loops through robots
   while (true) {
     //Sends status poll
-    send(CONTROL_ADDRESS+1+i, IR_POLL, address);
+    send(CONTROL_ADDRESS+1+i, POLL, address);
 
     //Waits until received or timeout
     waitReceive(interval);
@@ -259,7 +251,7 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
     //Checks to see if robot is ready
     unsigned int command, data;
     if (receive(&command, &data)) {
-      if ((command == IR_DONE) && (data == CONTROL_ADDRESS+1+i)) {
+      if ((command == DONE) && (data == CONTROL_ADDRESS+1+i)) {
         if (firstReady == -1) {
           firstReady = i;
         } else if (i == (firstReady - 1 + num) % num) {
@@ -279,8 +271,8 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   }
   
   //Sends ready signal
-  send(MASTER_ADDRESS, IR_DONE, address);
-  setSendInterval(200);
-  setSendRepeats(5);
-  waitSend();
+  for (int i = 0; i < num; i++) {
+    send(CONTROL_ADDRESS+1+i, DONE, address);
+    waitSend();
+  }
 }

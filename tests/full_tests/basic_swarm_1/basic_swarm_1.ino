@@ -51,7 +51,7 @@ TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS+1, 3, 5);
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 //Target color
-int targetColor = 3;
+int targetColor = BLUE;
 
 //Target tower
 int targetTower = 0;
@@ -130,23 +130,23 @@ void loop() {
 
     //Checks whether the first check was empty
     if (currBlock == currHeight) {
-      startedEmpty = (checkColor == -1);
+      startedEmpty = (checkColor == EMPTY);
     }
 
     //Updates buffer array with color
-    if (checkColor != -1) {
+    if (checkColor != EMPTY) {
       bufferColors[currBlock] = checkColor;
     }    
     
     if (startedEmpty) {
       //Moves down until tower is found
-      if (checkColor != -1) {
+      if (checkColor != EMPTY) {
         break;
       }
       currBlock--;
     } else {
       //Moves up until no tower is found
-      if (checkColor == -1) {
+      if (checkColor == EMPTY) {
         break;
       }
       currBlock++;

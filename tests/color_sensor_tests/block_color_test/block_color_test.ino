@@ -11,19 +11,19 @@ void setup() {
 
 void loop() {
   switch(sensor.getBlockColor()) {
-    case -1:
+    case EMPTY:
       Serial.println("Empty");
       break;
-    case 0:
+    case BLACK:
       Serial.println("Black");
       break;
-    case 1:
+    case WHITE:
       Serial.println("White");
       break;
-    case 2:
+    case RED:
       Serial.println("Red");
       break;
-    case 3:
+    case BLUE:
       Serial.println("Blue");
       break;
   }

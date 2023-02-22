@@ -48,11 +48,11 @@ void loop() {
   }
 
   //Updates actions
-  irt->send(CONTROL_ADDRESS+1, IR_SLIDE, slidePos);
+  irt->send(CONTROL_ADDRESS+1, SLIDE, slidePos);
   irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1, IR_TURRET, turretPos);
+  irt->send(CONTROL_ADDRESS+1, TURRET, turretPos);
   irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1, IR_GRIPPER, (int) gripState);
+  irt->send(CONTROL_ADDRESS+1, GRIPPER, (int) gripState);
   irt->waitSend();
 
   click.update();

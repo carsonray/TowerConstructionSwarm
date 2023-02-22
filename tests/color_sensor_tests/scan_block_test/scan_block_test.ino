@@ -55,10 +55,10 @@ void setup() {
 void loop() {
   for (int i = 3; i >= 0; i--) {
     int color = robot.scanBlock(0, i);
-    if (color == 2) {
+    if (color == RED) {
       robot.load(0, i);
       robot.unload(1);
-    } else if (color == 3) {
+    } else if (color == BLUE) {
       robot.load(0, i);
       robot.unload(3);
     }

@@ -16,6 +16,14 @@
 
 //Commands
 
+namespace BlockColors {
+	#define EMPTY -1
+	#define BLACK 0
+	#define WHITE 1
+	#define RED 2
+	#define BLUE 3
+}
+
 namespace IRcommands {
 	//Delay cycle for responses
 	#define DELAY_CYCLE 60
@@ -27,16 +35,24 @@ namespace IRcommands {
 	#define CONTROL_ADDRESS 0x1
 	
 	//Command                                                                                                                                    
-  	#define IR_POLL 0x0
-	#define IR_DONE 0x1
+  	#define POLL 0x0
+	#define DONE 0x1
 	
-  	#define IR_CLOSEST_TOWER 0x2   
-	#define IR_UPDATE_HEIGHT 0x3
+  	#define CLOSEST_TOWER 0x2   
+	#define UPDATE_HEIGHT 0x3
 
-	#define IR_SLIDE 0xA
-	#define IR_TURRET 0xB
-	#define IR_CARRY 0xC
-	#define IR_GRIPPER 0xD                                                                                                                            
+	#define SLIDE 0xA
+	#define TURRET 0xB
+	#define CARRY 0xC
+	#define GRIPPER 0xD                                                                                                                            
+}
+
+namespace YieldModes {
+	#define DORMANT -1
+	#define PENDING 0
+	#define POLLING 1
+	#define TOWER_UPDATING 2
+	#define HEIGHT_UPDATING 3
 }
 
 class TowerRobot {
@@ -329,7 +345,7 @@ class TowerRobot {
 				void setSendRepeats(int repeats);
 				void resetSendRepeats();
 
-				void resetLastSend();
+				void useInterval();
 
 				bool isSending();
 				void waitSend();
@@ -398,7 +414,7 @@ class TowerRobot {
 		bool yieldActive = false;
 
 		//Yielding mode
-		int yieldMode = -1;
+		int yieldMode = DORMANT;
 
 		//Current closest tower
 		int closestTower = 0;
