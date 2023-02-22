@@ -327,7 +327,9 @@ class TowerRobot {
 				void setSendInterval(int minTime, int maxTime);
 
 				void setSendRepeats(int repeats);
-				void resetSendRepeat();
+				void resetSendRepeats();
+
+				void resetLastSend();
 
 				bool isSending();
 				void waitSend();
@@ -354,7 +356,7 @@ class TowerRobot {
 		void setTowerHeights(int tower1, int tower2, int tower3, int tower4);
 		int getTowerHeight(int tower);
 
-		void waitSlideTurret();
+		bool waitSlideTurret();
 
 		void home();
 		void home(double homePos);
@@ -362,10 +364,10 @@ class TowerRobot {
 		bool moveToBlock(int tower);
 		bool moveToBlock(int tower, double blockNum);
 
-		void load(int tower);
-		void load(int tower, int blockNum);
+		bool load(int tower);
+		bool load(int tower, int blockNum);
 
-		void unload(int tower);
+		bool unload(int tower);
 
 		int scanBlock(int tower, int blockNum);
 
@@ -393,10 +395,10 @@ class TowerRobot {
 		bool irtInit = false;
 
 		//Whether movements are yielded to other robots
-		bool yieldEnabled = false;
-
-		//Whether yielding cycle is currently running
 		bool yieldActive = false;
+
+		//Yielding mode
+		int yieldMode = -1;
 
 		//Current closest tower
 		int closestTower = 0;

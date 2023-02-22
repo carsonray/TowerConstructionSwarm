@@ -88,8 +88,13 @@ void TowerRobot::IRT::setSendRepeats(int repeats) {
 }
 
 //Resets repeating
-void TowerRobot::IRT::resetSendRepeat() {
+void TowerRobot::IRT::resetSendRepeats() {
   currRepeats = 0;
+}
+
+//Resets last send time
+void TowerRobot::IRT::resetLastSend() {
+  lastSend = millis();
 }
 
 //Whether transceiver is currently sending
@@ -191,10 +196,17 @@ void TowerRobot::IRT::setAutoRelay(bool active) {
 void TowerRobot::IRT::update() {
   //Updates recieved signal
   if (recvActive && IrReceiver.decode()) {
+    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW) {
+      Serial.println("Overflow");
+    }
     //Ensures protocol is correct and is not interfering with sending
     if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
+      Serial.println("Received");
       //Unpacks signal
       unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
+      Serial.println(recvAddress);
+      Serial.println(recvCommand);
+      Serial.println(recvData);
       
       //Determines whether signal is addressed or has master address
       recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
@@ -213,6 +225,7 @@ void TowerRobot::IRT::update() {
   if (sendActive) {
     //Checks to see if their are still repeats left and interval is reached
     if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
+      Serial.println("Sending");
       IrSender.sendNEC(sendAddress, sendCommand, 0);
 
       //Updates last send time

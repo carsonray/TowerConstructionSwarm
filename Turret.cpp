@@ -211,7 +211,7 @@ void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   }
 
   //Corrects target position with carry offset
-  double target = towerPos[tower] - (carryOffset * Utils::sign(diff));
+  double target = towerPos[tower] - (carryOffset * dir);
   
   moveTo(false, target, accel, max);
 
