@@ -45,11 +45,16 @@ TowerRobot::Gripper gripper = TowerRobot::Gripper(gripPin);
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper);
 
 void setup() {
-  robot.setTowerHeights(4, 0, 0, 0);
+  robot.setTowerHeights(3, 1, 0, 0);
   robot.home();
 }
 
 void loop() {
-  robot.load(0);
+  robot.load(0, 1);
   robot.unload(1);
+  robot.load(1, 1);
+  robot.unload(0);
+  while(true) {
+
+  }
 }
