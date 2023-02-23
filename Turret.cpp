@@ -43,16 +43,10 @@ void TowerRobot::Turret::wait() {
   }
 }
 
-//Homes turret at desired zero position
+//Homes turret at zero position
 void TowerRobot::Turret::home() {
-  home(homePos);
-}
-void TowerRobot::Turret::home(double homePos) {
-  //Sets home position
-  this->homePos = homePos;
-
-  //Sets stepper position
-  stepper->setCurrentPosition(convertToRaw(homePos));
+  //Zeros stepper position
+  stepper->setCurrentPosition(0);
 }
 
 //Returns current block position

@@ -53,9 +53,6 @@ void TowerRobot::home(double homePos) {
   gripper->open();
 
   turret->home();
-  turret->moveTo(true, 0);
-  turret->wait();
-
   slide->home(homePos);
 }
 
@@ -352,8 +349,11 @@ bool TowerRobot::updateYield() {
             isBlocking = true;
             blocked = true;
 
-            //Moves to carry position to avoid interference
-            turret->moveToCarry(turret->closestTower());
+            //If gripper is closed, moves to carry position to avoid interference
+            if (!gripper->isOpen()) {
+              turret->moveToCarry(turret->closestTower());
+              turret->wait();
+            }
           } else {
             //Resumes polling
             yieldMode = POLLING;
@@ -370,18 +370,18 @@ bool TowerRobot::updateYield() {
       if (yieldMode == POLLING) {
         //Sends polling signal
         irt->send(MASTER_ADDRESS, POLL, irt->getAddress());
-        irt->setSendInterval(500, 1000);
+        irt->setSendInterval(200, 500);
       } else if (yieldMode == TOWER_UPDATING) {
         //Sends closest tower
         irt->send(MASTER_ADDRESS, CLOSEST_TOWER, closestTower);
-        irt->setSendInterval(500, 1000);
+        irt->setSendInterval(200, 500);
         
         //Switches to next mode
         yieldMode = HEIGHT_UPDATING;
       } else if (yieldMode == HEIGHT_UPDATING) {
         //Updates tower height
         irt->send(MASTER_ADDRESS, UPDATE_HEIGHT, towerHeights[closestTower]);
-        irt->setSendInterval(500, 1000);
+        irt->setSendInterval(200, 500);
 
         //Switches to next mode
         yieldMode = TOWER_UPDATING;

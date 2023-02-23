@@ -95,8 +95,8 @@ void setup() {
   robot.setYieldActive(true);
   robot.home();
   robot.synchronize();
-  //robot.load(0);
-  //robot.unload(1);
+  robot.load(0);
+  robot.unload(1);
 }
 
 void loop() {

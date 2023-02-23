@@ -130,9 +130,6 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
-				//Start position on homing
-				double homePos = 1.5;
-
 				//Correction for gear slippage
 				double gearCorrect = 5;
 
@@ -169,7 +166,6 @@ class TowerRobot {
 				void wait();
 
 				void home();
-				void home(double homePos);
 
 				double currentPosition();
 				double currentPosition(bool global);
