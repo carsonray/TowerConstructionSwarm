@@ -91,12 +91,12 @@ void setup() {
   robot.home();
   robot.synchronize();*/
   robot.setTowerHeights(4, 0, 0, 0);
-  robot.setAutoRelay(true);
+  //robot.setAutoRelay(true);
   robot.setYieldActive(true);
   robot.home();
   robot.synchronize();
-  robot.load(0);
-  robot.unload(1);
+  //robot.load(0);
+  //robot.unload(1);
 }
 
 void loop() {

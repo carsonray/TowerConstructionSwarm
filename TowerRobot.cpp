@@ -251,22 +251,17 @@ void TowerRobot::synchronize() {
   if (irtInit) {
     unsigned int command, data;
     while (true) {
-      //Waits until data is received
+      //Waits until done is received
       irt->waitReceive();
       irt->receive(&command, &data);
 
-      //Delays response
-      delay(DELAY_CYCLE);
-      
-      //Checks to ensure command is poll
-      if (command == POLL) {
-        //Sends ready status to controller
-        irt->send(data, POLL, irt->getAddress());
-      } else if (command == DONE) {
-        //Stops if all robots ready
+      if (command == DONE) {
+        //Relays done signal
+        delay(DELAY_CYCLE);
+        irt->send(MASTER_ADDRESS, DONE, data);
+        irt->waitSend();
         break;
       }
-      irt->update();
     }
   }
 }
