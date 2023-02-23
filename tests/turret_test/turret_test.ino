@@ -22,7 +22,7 @@ ScaledStepper stepper = ScaledStepper(stepPin, dirPin, modePins[0], modePins[1],
 TowerRobot::Turret turret = TowerRobot::Turret(stepsPerDegree, &stepper);
 
 void setup() {
-  Serial.begin(9600);
+  
 }
 
 void loop() {

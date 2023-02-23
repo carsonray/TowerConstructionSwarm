@@ -11,7 +11,6 @@ void setup() {
   pinMode(STEPPER_PIN_3, OUTPUT);
   pinMode(STEPPER_PIN_4, OUTPUT);
   pinMode(8, INPUT);
-  Serial.begin(9600);
 }
 
 void loop() {

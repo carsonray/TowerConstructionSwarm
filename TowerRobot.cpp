@@ -293,8 +293,6 @@ void TowerRobot::beginYield() {
       yieldMode = POLLING;
     }
 
-    Serial.println("Start yielding");
-
     //Resets closest tower
     closestTower = turret->closestTower();
   }
@@ -306,7 +304,6 @@ void TowerRobot::endYield() {
     //Activates dormant mode
     yieldMode = DORMANT;
 
-    Serial.println("Stop Yielding");
     //Sends done signal
     irt->send(MASTER_ADDRESS, DONE, turret->closestTower());
     irt->waitSend();
@@ -322,7 +319,6 @@ bool TowerRobot::updateYield() {
   while (irtInit && (yieldMode != DORMANT)) {
     //Stops blocking previous
     if (closestTower != turret->closestTower()) {
-      Serial.println("Send Done");
       irt->send(MASTER_ADDRESS, DONE, closestTower);
       irt->waitSend();
 
@@ -337,18 +333,15 @@ bool TowerRobot::updateYield() {
         if (data < irt->getAddress()) {
           //If polling signal detected with subordinate address
           //Activates update mode
-          Serial.println("Updating");
           if (yieldMode <= POLLING) {
             yieldMode = TOWER_UPDATING;
           }
         } else {
           //If polling signal detected with superior address
           //Activates pending mode
-          Serial.println("Pending");
           yieldMode = PENDING;
         }
       } else if ((command == DONE) && (data == turret->closestTower())) {
-        Serial.println("Received Done");
         //Stops blocking if interferance at tower no longer exists
         isBlocking = false;
 
@@ -360,7 +353,6 @@ bool TowerRobot::updateYield() {
         //Updating commands
         if (command == CLOSEST_TOWER) {
           if (data == turret->closestTower()) {
-            Serial.println("Blocking");
             //If interferance is detected
             isBlocking = true;
             blocked = true;
@@ -368,13 +360,10 @@ bool TowerRobot::updateYield() {
             //Moves to carry position to avoid interference
             turret->moveToCarry(turret->closestTower());
           } else {
-            Serial.println("Not Blocking");
             //Resumes polling
             yieldMode = POLLING;
           }
         } else if (command == UPDATE_HEIGHT) {
-          Serial.println("Recieved Tower Height");
-          Serial.println(data);
           //Updates tower height
           towerHeights[turret->closestTower()] = data;
         }
@@ -384,14 +373,10 @@ bool TowerRobot::updateYield() {
     //Updates polling modes
     if ((yieldMode > PENDING) && (!irt->isSending())) {
       if (yieldMode == POLLING) {
-        Serial.println("Polling");
         //Sends polling signal
         irt->send(MASTER_ADDRESS, POLL, irt->getAddress());
         irt->setSendInterval(500, 1000);
       } else if (yieldMode == TOWER_UPDATING) {
-        Serial.println("Update Closest Tower");
-        Serial.println(closestTower);
-
         //Sends closest tower
         irt->send(MASTER_ADDRESS, CLOSEST_TOWER, closestTower);
         irt->setSendInterval(500, 1000);
@@ -399,9 +384,6 @@ bool TowerRobot::updateYield() {
         //Switches to next mode
         yieldMode = HEIGHT_UPDATING;
       } else if (yieldMode == HEIGHT_UPDATING) {
-        Serial.println("Update Tower Height");
-        Serial.println(towerHeights[closestTower]);
-
         //Updates tower height
         irt->send(MASTER_ADDRESS, UPDATE_HEIGHT, towerHeights[closestTower]);
         irt->setSendInterval(500, 1000);

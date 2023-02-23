@@ -90,12 +90,11 @@ void setup() {
   robot.setTowerHeights(3, 3, 3, 3);
   robot.home();
   robot.synchronize();*/
-  Serial.begin(9600);
   robot.setTowerHeights(4, 0, 0, 0);
   robot.setAutoRelay(true);
   robot.setYieldActive(true);
   robot.home();
-  //robot.synchronize();
+  robot.synchronize();
   robot.load(0);
   robot.unload(1);
 }
