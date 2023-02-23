@@ -212,7 +212,6 @@ void TowerRobot::IRT::update() {
 
       //Auto relays non-directed commands
       if (!recvExists && autoRelay) {
-        Serial.println("Relaying");
         send(recvAddress, recvCommand, recvData);
         waitSend();
       }
