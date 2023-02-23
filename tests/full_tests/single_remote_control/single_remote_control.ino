@@ -4,6 +4,9 @@
 /* Initialize IRT object */
 TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS, 13, 5);
 
+//Target address
+int address = 0;
+
 //Joystick pins
 #define A0 xPin
 #define A1 yPin
@@ -48,11 +51,11 @@ void loop() {
   }
 
   //Updates actions
-  irt->send(CONTROL_ADDRESS+1, SLIDE, slidePos);
+  irt->send(CONTROL_ADDRESS+1+address, SLIDE, slidePos);
   irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1, TURRET, turretPos);
+  irt->send(CONTROL_ADDRESS+1+address, TURRET, turretPos);
   irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1, GRIPPER, (int) gripState);
+  irt->send(CONTROL_ADDRESS+1+address, GRIPPER, (int) gripState);
   irt->waitSend();
 
   click.update();
