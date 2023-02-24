@@ -8,11 +8,11 @@ TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS, 13, 5);
 int address = 0;
 
 //Joystick pins
-#define A0 xPin
-#define A1 yPin
+#define xPin A0
+#define yPin A1
 
 //Joystick button
-Button click = Button(2);
+Button button = Button(2, true, 0);
 
 //Slide position
 int slidePos = 0;
@@ -26,39 +26,41 @@ bool gripState = true;
 using namespace IRcommands;
 
 void setup() {
+  pinMode(2, INPUT_PULLUP);
   irt.begin();
 }
 
 void loop() {
   //Checks for joystick commands
-  if (analogRead(yPin) > 520) {
+  if (analogRead(xPin) < 490) {
     slidePos++;
-  } else if (analogRead(yPin < 504)) {
+  } else if (analogRead(xPin) > 530) {
     slidePos--;
   }
 
-  if (analogRead(xPin) > 520) {
+  if (analogRead(yPin) < 490) {
     turretPos++;
-    turretPos = turretPos % turret->numPos();
-  } else if (analogRead(xPin) < 504) {
+    turretPos = turretPos % 4;
+  } else if (analogRead(yPin) > 530) {
     turretPos--;
-    turretPos = (turretPos + turret->numPos()) % turret->numPos();
+    turretPos = (turretPos + 4) % 4;
   }
 
   //Checks for button command
-  if (click.changeTo(LOW)) {
+  if (button.changeTo(LOW)) {
     gripState = !gripState;
+    Serial.println(gripState);
   }
 
   //Updates actions
-  irt->send(CONTROL_ADDRESS+1+address, SLIDE, slidePos);
-  irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1+address, TURRET, turretPos);
-  irt->waitSend();
-  irt->send(CONTROL_ADDRESS+1+address, GRIPPER, (int) gripState);
-  irt->waitSend();
+  button.update();
 
-  click.update();
+  irt.send(CONTROL_ADDRESS+1+address, SLIDE, slidePos);
+  irt.waitSend();
+  irt.send(CONTROL_ADDRESS+1+address, TURRET, turretPos);
+  irt.waitSend();
+  irt.send(CONTROL_ADDRESS+1+address, GRIPPER, (int) gripState);
+  irt.waitSend();
 
   delay(DELAY_CYCLE);
 }

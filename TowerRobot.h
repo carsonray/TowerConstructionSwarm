@@ -48,7 +48,8 @@ namespace IRcommands {
 }
 
 namespace YieldModes {
-	#define DORMANT -1
+	#define DORMANT -2
+	#define BLOCKED -1
 	#define PENDING 0
 	#define POLLING 1
 	#define TOWER_UPDATING 2
@@ -78,10 +79,10 @@ class TowerRobot {
 				double upperLimit;
 
 				//Default acceleration
-				double defAccel = 1;
+				double defAccel = 2;
 
 				//Default max speed
-				double defMax = 2.5;
+				double defMax = 2;
 
 				//Margin to clear blocks after loading
 				double clearMargin = 0.3;
@@ -130,20 +131,14 @@ class TowerRobot {
 				//Steps per degree
 				double stepsPerDegree;
 
-				//Correction for gear slippage
-				double gearCorrect = 5;
-
-				//Whether position is corrected
-				bool correcting = false;
-
 				//Ring drive stepper
 				ScaledStepper* stepper;
 
 				//Default acceleration
-				double defAccel = 30;
+				double defAccel = 40;
 
 				//Default max speed
-				double defMax = 80;
+				double defMax = 70;
 
 				//Current tower position
 				int currTowerPos = 0;
@@ -174,6 +169,8 @@ class TowerRobot {
 				double targetPosition(bool global);
 
 				int getTowerPos();
+
+				double getStepError();
 
 				int closestTower();
 

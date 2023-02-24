@@ -57,18 +57,26 @@ void TowerRobot::home(double homePos) {
 }
 
 bool TowerRobot::waitSlideTurret() {
+  bool blocked = false;
+
   bool slideRun = true;
   bool turretRun = true;
   while (slideRun || turretRun) {
+    //If yielding was blocked
     if (!updateYield()) {
-      return false;
+      blocked = true;
+
+      //Aborts if gripper closed
+      if (!gripper->isOpen()) {
+        break;
+      }
     }
 
     slideRun = slide->run();
     turretRun = turret->run();
   }
 
-  return true;
+  return !blocked;
 }
 
 //Moves to tower and block position
@@ -304,7 +312,6 @@ void TowerRobot::endYield() {
 
 //Updates yield protocol
 bool TowerRobot::updateYield() {
-  bool isBlocking = false;
   bool blocked = false;
   unsigned int command, data;
 
@@ -325,7 +332,7 @@ bool TowerRobot::updateYield() {
         if (data < irt->getAddress()) {
           //If polling signal detected with subordinate address
           //Activates update mode
-          if (yieldMode <= POLLING) {
+          if (yieldMode == POLLING) {
             yieldMode = TOWER_UPDATING;
           }
         } else {
@@ -334,10 +341,7 @@ bool TowerRobot::updateYield() {
           yieldMode = PENDING;
         }
       } else if ((command == DONE) && (data == turret->closestTower())) {
-        //Stops blocking if interferance at tower no longer exists
-        isBlocking = false;
-
-        //Activates polling mode
+        //Resumes polling when no interferance
         yieldMode = POLLING;
       }
 
@@ -346,7 +350,7 @@ bool TowerRobot::updateYield() {
         if (command == CLOSEST_TOWER) {
           if (data == turret->closestTower()) {
             //If interferance is detected
-            isBlocking = true;
+            yieldMode = BLOCKED;
             blocked = true;
 
             //If gripper is closed, moves to carry position to avoid interference
@@ -355,7 +359,7 @@ bool TowerRobot::updateYield() {
               turret->wait();
             }
           } else {
-            //Resumes polling
+            //Resumes polling when no interferance
             yieldMode = POLLING;
           }
         } else if (command == UPDATE_HEIGHT) {
@@ -391,8 +395,8 @@ bool TowerRobot::updateYield() {
       irt->useInterval();
     }
 
-    //Resumes if no longer yielding
-    if (!isBlocking) {
+    //Does not block other tasks if gripper is open
+    if (gripper->isOpen() || (yieldMode != BLOCKED)) {
       break;
     }
   }

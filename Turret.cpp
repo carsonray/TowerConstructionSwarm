@@ -11,7 +11,7 @@
 TowerRobot::Turret::Turret(double stepsPerDegree, ScaledStepper* stepper) {
 	this->stepsPerDegree = stepsPerDegree;
   this->stepper = stepper;
-  stepper->enableModeSwitch();
+  stepper->setStepMode(8);
   stepper->setMaxSpeed(convertToRaw(defMax));
 }
 
@@ -80,6 +80,10 @@ double TowerRobot::Turret::targetPosition(bool global) {
 //Gets current tower position
 int TowerRobot::Turret::getTowerPos() {
   return currTowerPos;
+}
+
+double TowerRobot::Turret::getStepError() {
+  return convertToDegree(0.5/stepper->getStepMode());
 }
 
 //Gets closest tower position
@@ -154,16 +158,6 @@ void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double
   //If local target, add to local position
   if (!global) {
     degree = currentPosition() + (localize(degree - currentPosition()));
-  }
-
-  //Overshoots to correct for gear slop if moving counterclockwise
-  double diff = degree - currentPosition();
-  if (diff < 0 || (correcting && (diff <= gearCorrect))) {
-    degree -= gearCorrect;
-    correcting = true;
-  } else if (diff > 0) {
-    //Otherwise stops correcting
-    correcting = false;
   }
 
   //Sets stepper settings

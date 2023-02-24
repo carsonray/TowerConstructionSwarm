@@ -20,43 +20,6 @@ ScaledStepper::ScaledStepper(int step, int dir, int mode1, int mode2, int mode3)
 	}
 }
 
-//Sets limits of step speed before step mode is changed
-void ScaledStepper::setSpeedRange(float minSpeed, float maxSpeed) {
-    //Auto enables mode switching
-    enableModeSwitch();
-
-    /*
-    Ensures that the ratio of the bounds is greater
-    than or equal to two to prevent oscillation
-    */ 
-    if (maxSpeed < minSpeed*2) {
-        maxSpeed = minSpeed*2;
-    }
-
-    speedRange[0] = minSpeed;
-    speedRange[1] = maxSpeed;
-}
-
-//Sets range of permitted microstepping speeds
-void ScaledStepper::setModeRange(int minMode, int maxMode) {
-    enableModeSwitch();
-    modeRange[0] = minMode;
-    modeRange[1] = maxMode;
-}
-
-/*
-Enables dynamic switching of microstepping modes
-If step speed falls outside range, step mode will be adjusted
-to stay inside range
-Note: Bounds must have a ratio greater than or equal to 2
-*/
-void ScaledStepper::enableModeSwitch() {
-    enableModeSwitch(true);
-}
-void ScaledStepper::enableModeSwitch(bool useModeSwitch) {
-    this->useModeSwitch = useModeSwitch;
-}
-
 //Sets A4988 microstepping mode pins
 void ScaledStepper::setModePins(bool mode1, bool mode2, bool mode3) {
     digitalWrite(modePins[0], mode1);
@@ -103,26 +66,6 @@ void ScaledStepper::setStepMode(int stepMode) {
 //Gets step mode
 int ScaledStepper::getStepMode() {
     return stepMode;
-}
-
-//Checks to see if micro step mode is necessary
-void ScaledStepper::checkModeSwitch(float speed) {
-    //If auto mode switch is enabled
-    if (useModeSwitch) {
-        float rawSpeed = (float) unscaleVal(speed);
-        if (abs(rawSpeed) < speedRange[0]) {
-            //Moves to smaller microstepping mode to increase step speed
-            fitMode(abs(rawSpeed), speedRange[1]);
-        } else if (abs(rawSpeed) > speedRange[1]) {
-            //Moves to larger microstepping mode to decrease step speed
-            fitMode(abs(rawSpeed), speedRange[0]);
-        }
-    }
-}
-
-//Changes microstepping mode to fit speed range
-void ScaledStepper::fitMode(float speed, float bound) {
-    setStepMode(round(stepMode*pow(2, (int) Utils::loga(2, bound/speed))));
 }
 
 /*
@@ -207,13 +150,11 @@ float ScaledStepper::maxSpeed() {
 
 //Sets full steps per second speed
 void ScaledStepper::setSpeed(float speed) {
-    checkModeSwitch(speed);
     AccelStepper::setSpeed((float) unscaleVal(speed));
 }
 
 //Sets max full steps per second speed
 void ScaledStepper::setMaxSpeed(float speed) {
-    checkModeSwitch(speed);
     AccelStepper::setMaxSpeed((float) unscaleVal(speed));
 }
 

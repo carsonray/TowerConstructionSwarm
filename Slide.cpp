@@ -12,7 +12,7 @@ TowerRobot::Slide::Slide(double stepsPerBlock, double upperLimit, ScaledStepper*
 	this->stepsPerBlock = stepsPerBlock;
   this->upperLimit = upperLimit;
   this->stepper = stepper;
-  stepper->enableModeSwitch();
+  stepper->setStepMode(8);
   stepper->setMaxSpeed(convertToRaw(defMax));
   this->limit = limit;
 }
@@ -108,6 +108,7 @@ void TowerRobot::Slide::home(double homePos) {
   this->homePos = homePos;
 
   //Uses constant slow speed
+  stepper->setStepMode(16);
   stepper->setSpeed(convertToRaw(homeSpeed));
 
   while (!checkLimits()) {
@@ -116,6 +117,7 @@ void TowerRobot::Slide::home(double homePos) {
 
   //Homes when limit is reached
   stepper->setCurrentPosition(convertToRaw(homePos));
+  stepper->setStepMode(8);
 }
 
 double TowerRobot::Slide::getHomePos() {
