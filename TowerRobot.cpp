@@ -409,6 +409,7 @@ void TowerRobot::remoteControl() {
     irt->update();
     unsigned int command, data;
     if (irt->receive(&command, &data)) {
+      Serial.println("Received");
       if (command == SLIDE) {
         slide->moveToBlock(data);
       } else if (command == TURRET) {

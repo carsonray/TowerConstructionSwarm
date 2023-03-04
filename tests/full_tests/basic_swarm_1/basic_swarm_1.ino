@@ -86,21 +86,14 @@ int bufferDiff = 0;
 bool openTowers[4] = {true, true, true, true};
 
 void setup() {
-  /*randomSeed(analogRead(A0));
+  randomSeed(analogRead(A0));
   robot.setTowerHeights(3, 3, 3, 3);
-  robot.home();
-  robot.synchronize();*/
-  robot.setTowerHeights(4, 0, 0, 0);
-  //robot.setAutoRelay(true);
   robot.setYieldActive(true);
   robot.home();
   robot.synchronize();
-  robot.load(0);
-  robot.unload(1);
 }
 
 void loop() {
-  /*
   if ((robot.getTowerHeight(targetTower) != 0) && openTowers[targetTower]) {
     //Ensures target tower is fully unloaded
     loadTower = targetTower;
@@ -110,20 +103,28 @@ void loop() {
     //And is availiable
     while (true) {
       loadTower = random(0, 4);
+      randomSeed(analogRead(A0));
 
       if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
         break;
       }
     }
   }
+
+  //Resets unload tower to -1
+  unloadTower = -1;
   
   //Gets predicted tower height
   currHeight = robot.getTowerHeight(loadTower);
   currBlock = currHeight;
-  */
+
+  //Resets buffer color array
+  for (int i = 0; i < 10; i++) {
+    bufferColors[i] = -2;
+  }
   
   //Finds actual tower height
-  /*bool startedEmpty = false;
+  bool startedEmpty = false;
   while (true) {
     checkColor = robot.scanBlock(loadTower, currBlock);
 
@@ -152,14 +153,10 @@ void loop() {
     }
   }
 
-  //Gets offset of buffer array if height changed
-  bufferDiff = robot.getTowerHeight(loadTower) - currHeight;
-
   //Updates tower height
   currHeight = robot.getTowerHeight(loadTower);
   currBlock = currHeight;
-  */
- /*
+ 
   //Whether the top of the tower was the target color
   bool startedTarget = false;
 
@@ -169,7 +166,7 @@ void loop() {
     currBlock--;
 
     //If color is not read, reads it in
-    checkColor = bufferColors[currBlock + bufferDiff];
+    checkColor = bufferColors[currBlock];
     if (checkColor == -2) {
       checkColor = robot.scanBlock(loadTower, currBlock);
     }
@@ -208,6 +205,7 @@ void loop() {
         //Unloads on random tower
         while (true) {
           unloadTower = random(0, 4);
+          randomSeed(analogRead(A0));
 
           //Ensures uneccesary blocks are not unloaded on same load tower or target tower
           if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
@@ -216,7 +214,7 @@ void loop() {
         }
       }
 
-      if (robot.unload(unloadTower))) {
+      if (robot.unload(unloadTower)) {
         break;
       }
     }
@@ -224,5 +222,4 @@ void loop() {
     //Locks tower if nothing should be loaded
     openTowers[loadTower] = false;
   }
-  */
 }

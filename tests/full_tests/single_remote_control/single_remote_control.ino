@@ -49,7 +49,6 @@ void loop() {
   //Checks for button command
   if (button.changeTo(LOW)) {
     gripState = !gripState;
-    Serial.println(gripState);
   }
 
   //Updates actions
@@ -62,5 +61,5 @@ void loop() {
   irt.send(CONTROL_ADDRESS+1+address, GRIPPER, (int) gripState);
   irt.waitSend();
 
-  delay(DELAY_CYCLE);
+  delay(100);
 }
