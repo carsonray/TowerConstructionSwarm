@@ -387,6 +387,7 @@ class TowerRobot {
 
 		void beginYield();
 		void endYield();
+		bool waitYield(int timeout);
 		bool updateYield();
 
 		void remoteControl();

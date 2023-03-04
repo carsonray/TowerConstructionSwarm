@@ -185,7 +185,7 @@ bool TowerRobot::load(int tower, int blockNum) {
     //Begins yielding
     beginYield();
 
-    if (!moveToBlock(tower, blockNum)) {
+    if ((!moveToBlock(tower, blockNum)) || (!waitYield(1000))) {
       return false;
     }
 
@@ -310,6 +310,18 @@ void TowerRobot::endYield() {
   }
 }
 
+//Updates yielding until timeout
+bool TowerRobot::waitYield(int timeout) {
+  unsigned long timeoutStart = millis();
+  while ((millis() - timeoutStart) < timeout) {
+    if (!updateYield()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 //Updates yield protocol
 bool TowerRobot::updateYield() {
   bool blocked = false;
@@ -355,6 +367,8 @@ bool TowerRobot::updateYield() {
             //Moves to carry position to avoid interference
             turret->moveToCarry(turret->closestTower());
             turret->wait();
+
+            delay(3000);
           } else {
             //Resumes polling when no interferance
             yieldMode = POLLING;
