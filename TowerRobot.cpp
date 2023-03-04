@@ -315,7 +315,7 @@ bool TowerRobot::updateYield() {
   bool blocked = false;
   unsigned int command, data;
 
-  while (irtInit && (yieldMode != DORMANT)) {
+  if (irtInit && (yieldMode != DORMANT)) {
     //Stops blocking previous
     if (closestTower != turret->closestTower()) {
       irt->send(MASTER_ADDRESS, DONE, closestTower);
@@ -351,13 +351,10 @@ bool TowerRobot::updateYield() {
           if (data == turret->closestTower()) {
             //If interferance is detected
             yieldMode = BLOCKED;
-            blocked = true;
 
-            //If gripper is closed, moves to carry position to avoid interference
-            if (!gripper->isOpen()) {
-              turret->moveToCarry(turret->closestTower());
-              turret->wait();
-            }
+            //Moves to carry position to avoid interference
+            turret->moveToCarry(turret->closestTower());
+            turret->wait();
           } else {
             //Resumes polling when no interferance
             yieldMode = POLLING;
@@ -393,11 +390,6 @@ bool TowerRobot::updateYield() {
 
       //Ensures interval is waited
       irt->useInterval();
-    }
-
-    //Does not block other tasks if gripper is open
-    if (gripper->isOpen() || (yieldMode != BLOCKED)) {
-      break;
     }
   }
 

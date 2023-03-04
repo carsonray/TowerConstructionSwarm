@@ -87,7 +87,7 @@ bool openTowers[4] = {true, true, true, true};
 
 void setup() {
   randomSeed(analogRead(A0));
-  robot.setTowerHeights(3, 3, 3, 3);
+  robot.setTowerHeights(1, 1, 1, 1);
   robot.setYieldActive(true);
   robot.home();
   robot.synchronize();
