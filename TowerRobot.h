@@ -48,12 +48,9 @@ namespace IRcommands {
 }
 
 namespace YieldModes {
-	#define DORMANT -2
-	#define BLOCKED -1
-	#define PENDING 0
-	#define POLLING 1
-	#define TOWER_UPDATING 2
-	#define HEIGHT_UPDATING 3
+	#define DORMANT 0
+	#define PENDING 1
+	#define BLOCKED 2
 }
 
 class TowerRobot {
@@ -387,7 +384,6 @@ class TowerRobot {
 
 		void beginYield();
 		void endYield();
-		bool waitYield(int timeout);
 		bool updateYield();
 
 		void remoteControl();
