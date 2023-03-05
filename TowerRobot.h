@@ -164,8 +164,9 @@ class TowerRobot {
 
 				double targetPosition();
 				double targetPosition(bool global);
-
-				int getTowerPos();
+				
+				double getTowerPos(int tower);
+				int getCurrTower();
 
 				double getStepError();
 
@@ -384,6 +385,10 @@ class TowerRobot {
 
 		void beginYield();
 		void endYield();
+		
+		void sendYield();
+		void sendDone();
+
 		bool updateYield();
 
 		void remoteControl();
@@ -417,6 +422,9 @@ class TowerRobot {
 
 		//Margin for color sensor to read block
 		double sensorMargin = 0.3;
+
+		//Angle for color sensor to read block
+		double sensorAngle = -12;
 };
 
 #endif

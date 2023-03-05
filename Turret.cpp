@@ -77,8 +77,13 @@ double TowerRobot::Turret::targetPosition(bool global) {
   return rawPos;
 }
 
+//Gets position of tower
+double TowerRobot::Turret::getTowerPos(int tower) {
+  return towerPos[tower];
+}
+
 //Gets current tower position
-int TowerRobot::Turret::getTowerPos() {
+int TowerRobot::Turret::getCurrTower() {
   return currTowerPos;
 }
 

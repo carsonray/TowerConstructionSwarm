@@ -104,10 +104,10 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     }
     
     //If not at correct tower
-    if (turret->getTowerPos() != tower) {
+    if (turret->getCurrTower() != tower) {
       //Moves to clear current tower
-      if (slide->currentPosition() - (towerHeights[turret->getTowerPos()] + slide->getClearMargin()) < -slide->getStepError()) {
-        slide->moveToClear(towerHeights[turret->getTowerPos()]);
+      if (slide->currentPosition() - (towerHeights[turret->getCurrTower()] + slide->getClearMargin()) < -slide->getStepError()) {
+        slide->moveToClear(towerHeights[turret->getCurrTower()]);
         while(slide->run()) {
           if (!updateYield()) {
             return false;
@@ -189,6 +189,15 @@ bool TowerRobot::load(int tower, int blockNum) {
       return false;
     }
 
+    //Sends yielding signal
+    sendYield();
+
+    delay(DELAY_CYCLE);
+
+    if (!updateYield()) {
+      return false;
+    }
+
     //Closes gripper
     gripper->close();
     gripper->wait();
@@ -230,8 +239,14 @@ bool TowerRobot::unload(int tower) {
 //Scans color of particular block
 int TowerRobot::scanBlock(int tower, int blockNum) {
   if (colorInit) {
+    //Opens gripper to clear towers
+    gripper->open();
+
     //Moves to tower clockwise from target to align color sensor with target
-    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
+    //Uses slide and turret offsets
+    slide->moveToBlock(blockNum + sensorMargin);
+    turret->moveTo(turret->getTowerPos(turret->nextTower(tower, -1)) + sensorAngle);
+    if (!waitSlideTurret()) {
       return -2;
     }
 
@@ -303,7 +318,24 @@ void TowerRobot::endYield() {
   if (irtInit && yieldActive) {
     //Activates dormant mode
     yieldMode = DORMANT;
+
+    //Sends done signal
+    sendDone();
   }
+}
+
+//Sends yielding signal
+void TowerRobot::sendYield() {
+  //Includes address and closest tower in signal
+  irt->send(MASTER_ADDRESS, POLL, irt->getAddress()*4 + closestTower);
+  irt->waitSend();
+}
+
+//Sends done signal
+void TowerRobot::sendDone() {
+  //Includes closest tower and updated height in signal
+  irt->send(MASTER_ADDRESS, DONE, towerHeights[closestTower]*4 + closestTower);
+  irt->waitSend();
 }
 
 //Updates yield protocol
@@ -314,18 +346,16 @@ bool TowerRobot::updateYield() {
   if (irtInit && (yieldMode != DORMANT)) {
     //If closest tower has changed
     if (closestTower != turret->closestTower()) {
-      //Sends done signal and updated tower height
-      irt->send(MASTER_ADDRESS, DONE, towerHeights[closestTower]*4 + closestTower);
-      irt->waitSend();
+      //Sends done signal for previous tower
+      sendDone();
 
       delay(DELAY_CYCLE);
 
       //Sets new closest tower
       closestTower = turret->closestTower();
 
-      //Sends current tower poll
-      irt->send(MASTER_ADDRESS, POLL, irt->getAddress()*4 + closestTower);
-      irt->waitSend();
+      //Sends yield signal for new tower
+      sendYield();
     }
 
     //Loops until not blocked

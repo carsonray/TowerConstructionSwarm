@@ -77,10 +77,10 @@ int TowerRobot::ColorSensor::getBlockColor() {
 
         //Checks each color
         for (int col = 0; col < numColors(); col++) {
-            //Sums each scaled channel difference
+            //Sums each squared channel difference
             int currDiff = 0;
             for (int ch = 0; ch < 3; ch++) {
-                currDiff += abs(blockColors[col][ch] - channels[ch]);
+                currDiff += pow(abs(blockColors[col][ch] - channels[ch]), 2);
             }
 
             //Updates closest color
@@ -93,6 +93,6 @@ int TowerRobot::ColorSensor::getBlockColor() {
         //Returns closest color
         return minColor;
     } else {
-        return -1;
+        return EMPTY;
     }
 }
