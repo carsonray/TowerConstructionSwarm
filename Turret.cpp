@@ -200,7 +200,7 @@ void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
 
   //Ensures dir is not zero
   if (dir == 0) {
-    dir = 1;
+    dir = -1;
   }
 
   //Corrects target position with carry offset

@@ -242,10 +242,13 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     //Opens gripper to clear towers
     gripper->open();
 
+    //Begins yielding
+    beginYield();
+
     //Moves to tower clockwise from target to align color sensor with target
     //Uses slide and turret offsets
     slide->moveToBlock(blockNum + sensorMargin);
-    turret->moveTo(turret->getTowerPos(turret->nextTower(tower, -1)) + sensorAngle);
+    turret->moveTo(false, turret->getTowerPos(turret->nextTower(tower, -1)) + sensorAngle);
     if (!waitSlideTurret()) {
       return -2;
     }
@@ -259,6 +262,8 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     } else if ((blockColor == EMPTY) && (blockNum < towerHeights[tower])) {
       towerHeights[tower] = blockNum;
     }
+
+    endYield();
 
     return blockColor;
   } else {
@@ -367,6 +372,10 @@ bool TowerRobot::updateYield() {
           //Blocks movement when superior address is interfering on same tower
           yieldMode = BLOCKED;
           blocked = true;
+
+          //Moves to carry position to avoid interference
+          turret->moveToCarry(closestTower);
+          turret->wait();
         } else if ((yieldMode == BLOCKED) && (command == DONE) && (data % 4 == closestTower)) {
           //Resumes pending when interference no longer exists
           yieldMode = PENDING;

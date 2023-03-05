@@ -149,8 +149,8 @@ class TowerRobot {
 				double convertToDegree(double raw);
 				double convertToRaw(double degree);
 
-				double localize(double globalAngle);
 				int numPos();
+				double localize(double globalAngle);
 			public:
 				Turret(double stepsPerDegree, ScaledStepper* stepper);
 
