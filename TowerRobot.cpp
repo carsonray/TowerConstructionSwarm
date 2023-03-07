@@ -400,7 +400,13 @@ void TowerRobot::sendYield() {
     command = UNLOADING;
   }
   //Sends yield with address and next tower
-  irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + turret->nextTowerTo(turret->targetTower()));
+  int nextTower = turret->nextTowerTo(turret->targetTower());
+  irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
+  irt->waitSend();
+
+  waitSync(2, IR_CYCLE);
+  //Updates tower height
+  irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
   irt->waitSend();
 }
 
@@ -442,8 +448,11 @@ bool TowerRobot::updateYield() {
         if (yieldMode == PENDING) {
           //If next tower matches
           if (data % 4 == turret->nextTowerTo(turret->targetTower())) {
-            //If targets match or both are unloading
-            if ((turret->targetTower() == turret->closestTower()) || (cargo > 0) && (command == UNLOADING)) {
+            if (command == TOWER_HEIGHT) {
+              //Updates tower height
+              towerHeights[turret->nextTowerTo(turret->targetTower())];
+            } else if ((turret->targetTower() == turret->closestTower()) || (cargo > 0) && (command == UNLOADING)) {
+              //If targets match or both are unloading
               if ((data / 4) % 2 == 0) {
                 //Blocks movement when superior address is interfering on same tower
                 yieldMode = BLOCKED;
