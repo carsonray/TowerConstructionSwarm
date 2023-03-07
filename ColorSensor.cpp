@@ -80,7 +80,7 @@ int TowerRobot::ColorSensor::getBlockColor() {
             //Sums each squared channel difference
             int currDiff = 0;
             for (int ch = 0; ch < 3; ch++) {
-                currDiff += pow(abs(blockColors[col][ch] - channels[ch]), 2);
+                currDiff += abs(blockColors[col][ch] - channels[ch]);
             }
 
             //Updates closest color

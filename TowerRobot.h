@@ -26,7 +26,10 @@ namespace BlockColors {
 
 namespace IRcommands {
 	//Delay cycle for responses
-	#define DELAY_CYCLE 60
+	#define IR_CYCLE 60
+
+	//Delay cycle for color sensor readings
+	#define COLOR_CYCLE 300
 
 	//Address accepted by all
 	#define MASTER_ADDRESS 0x0
@@ -365,6 +368,8 @@ class TowerRobot {
 
 		bool waitSlideTurret();
 
+		void sleep(unsigned long timeout);
+
 		void home();
 		void home(double homePos);
 
@@ -379,6 +384,8 @@ class TowerRobot {
 		int scanBlock(int tower, int blockNum);
 
 		void synchronize();
+		void waitSync(int channels, int size);
+		void updateSync(int size);
 		
 		void setAutoRelay(bool active);
 		void setYieldActive(bool active);
@@ -423,8 +430,8 @@ class TowerRobot {
 		//Margin for color sensor to read block
 		double sensorMargin = 0.3;
 
-		//Angle for color sensor to read block
-		double sensorAngle = -12;
+		//Time of synchronization
+		int syncStart = 0;
 };
 
 #endif

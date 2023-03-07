@@ -21,7 +21,6 @@ TowerRobot::IRT::IRT(int address, int sendPin, int recvPin) {
 
 //Initializes transceiver
 void TowerRobot::IRT::begin() {
-  randomSeed(analogRead(A0));
   IrSender.begin(sendPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
   IrReceiver.begin(recvPin, DISABLE_LED_FEEDBACK, USE_DEFAULT_FEEDBACK_LED_PIN);
 }
@@ -98,7 +97,18 @@ void TowerRobot::IRT::useInterval() {
   lastSend = millis();
 
   //Calculates new interval
-  currInterval = random(minInterval, maxInterval);
+  randomSeed(analogRead(A0));
+  switch (random(0, 3)) {
+    case 0:
+      currInterval = minInterval;
+      break;
+    case 1:
+      currInterval = (minInterval + maxInterval) / 2;
+      break;
+    case 2:
+      currInterval = maxInterval;
+      break;
+  }
 }
 
 //Whether transceiver is currently sending

@@ -61,6 +61,6 @@ void loop() {
     irt.send(CONTROL_ADDRESS+1+i, GRIPPER, (int) gripState[i]);
     irt.waitSend();
 
-    delay(DELAY_CYCLE);
+    delay(IR_CYCLE);
   }
 }

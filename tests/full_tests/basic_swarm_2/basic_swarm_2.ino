@@ -86,8 +86,6 @@ int bufferDiff = 0;
 bool openTowers[4] = {true, true, true, true};
 
 void setup() {
-  Serial.begin(9600);
-  randomSeed(analogRead(A0));
   robot.setTowerHeights(1, 1, 1, 1);
   robot.setYieldActive(true);
   robot.home();
@@ -95,25 +93,41 @@ void setup() {
 }
 
 void loop() {
-  if ((robot.getTowerHeight(targetTower) != 0) && openTowers[targetTower]) {
+  //Updates avialiable load towers
+  bool availiable = false;
+  for (int i = 0; i < 4; i++) {
+    if (robot.getTowerHeight(i) == 0) {
+      //Tower is not open if has no height
+      openTowers[i] = false;
+    }
+    availiable = availiable || openTowers[i];
+  }
+
+  //If no availiable tower, ensures yield is being updated
+  if (!availiable) {
+    robot.beginYield();
+    turret.moveToCarry(turret.closestTower());
+    robot.waitSlideTurret();
+    while (true) {
+      robot.updateYield();
+    }
+  }
+
+  //Gets load tower
+  if (openTowers[targetTower]) {
     //Ensures target tower is fully unloaded
     loadTower = targetTower;
   } else {
-    //Gets random load tower that was not the previous unload tower
-    //And has blocks on it
-    //And is availiable
+    //Gets random availiable load tower
     while (true) {
-      loadTower = random(0, 4);
       randomSeed(analogRead(A0));
+      loadTower = random(0, 4);
 
-      if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
+      if (openTowers[loadTower]) {
         break;
       }
     }
   }
-
-  //Resets unload tower to -1
-  unloadTower = -1;
   
   //Gets predicted tower height
   currHeight = robot.getTowerHeight(loadTower);
@@ -126,7 +140,7 @@ void loop() {
   
   //Finds actual tower height
   bool startedEmpty = false;
-  while (true) {
+  while (currBlock >= 0) {
     checkColor = robot.scanBlock(loadTower, currBlock);
 
     //Checks whether the first check was empty
@@ -157,6 +171,11 @@ void loop() {
   //Updates tower height
   currHeight = robot.getTowerHeight(loadTower);
   currBlock = currHeight;
+
+  //Ends if height is zero
+  if (currHeight== 0) {
+    return;
+  }
  
   //Whether the top of the tower was the target color
   bool startedTarget = false;
@@ -205,8 +224,8 @@ void loop() {
       } else {
         //Unloads on random tower
         while (true) {
-          unloadTower = random(0, 4);
           randomSeed(analogRead(A0));
+          unloadTower = random(0, 4);
 
           //Ensures uneccesary blocks are not unloaded on same load tower or target tower
           if ((unloadTower != loadTower) && (unloadTower != targetTower)) {

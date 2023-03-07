@@ -83,7 +83,6 @@ int bufferDiff = 0;
 bool openTowers[4] = {true, true, true, true};
 
 void setup() {
-  randomSeed(analogRead(A0));
   robot.setTowerHeights(3, 3, 3, 3);
   robot.home();
 }
@@ -97,8 +96,8 @@ void loop() {
     //And has blocks on it
     //And is availiable
     while (true) {
-      loadTower = random(0, 4);
       randomSeed(analogRead(A0));
+      loadTower = random(0, 4);
 
       if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
         break;
@@ -195,8 +194,8 @@ void loop() {
     } else {
       //Unloads on random tower
       while (true) {
-        unloadTower = random(0, 4);
         randomSeed(analogRead(A0));
+        unloadTower = random(0, 4);
 
         //Ensures uneccesary blocks are not unloaded on same load tower or target tower
         if ((unloadTower != loadTower) && (unloadTower != targetTower)) {

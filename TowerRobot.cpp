@@ -43,6 +43,9 @@ void TowerRobot::home() {
   home(slide->getHomePos());
 }
 void TowerRobot::home(double homePos) {
+  pinMode(A0, INPUT);
+  randomSeed(analogRead(A0));
+
   if (irtInit) {
     irt->begin();
   }
@@ -77,6 +80,16 @@ bool TowerRobot::waitSlideTurret() {
   }
 
   return !blocked;
+}
+
+//Sleeps while updating ir
+void TowerRobot::sleep(unsigned long timeout) {
+  unsigned long timeoutStart = millis();
+  while ((millis() - timeoutStart) < timeout) {
+    if (irtInit) {
+      irt->update();
+    }
+  }
 }
 
 //Moves to tower and block position
@@ -192,7 +205,7 @@ bool TowerRobot::load(int tower, int blockNum) {
     //Sends yielding signal
     sendYield();
 
-    delay(DELAY_CYCLE);
+    sleep(IR_CYCLE*2);
 
     if (!updateYield()) {
       return false;
@@ -246,14 +259,12 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     beginYield();
 
     //Moves to tower clockwise from target to align color sensor with target
-    //Uses slide and turret offsets
-    slide->moveToBlock(blockNum + sensorMargin);
-    turret->moveTo(false, turret->getTowerPos(turret->nextTower(tower, -1)) + sensorAngle);
-    if (!waitSlideTurret()) {
+    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
       return -2;
     }
 
     //Gets color of block
+    waitSync(2, COLOR_CYCLE);
     int blockColor = colorSensor->getBlockColor();
 
     //Updates tower height
@@ -281,13 +292,39 @@ void TowerRobot::synchronize() {
       irt->receive(&command, &data);
 
       if (command == DONE) {
+        //Sets synchronization start
+        syncStart = millis();
+
         //Relays done signal
-        delay(DELAY_CYCLE);
+        sleep(IR_CYCLE);
         irt->send(MASTER_ADDRESS, DONE, data);
         irt->waitSend();
         break;
       }
     }
+  }
+}
+
+//Waits until time channel is open
+void TowerRobot::waitSync(int channels, int size) {
+  if (irtInit) {
+    //Waits for incorrect parity
+    while (((millis() - syncStart)/size) % channels != (irt->getAddress() % channels)) {
+
+    }
+    //Waits for correct parity
+    while (((millis() - syncStart)/size) % channels == (irt->getAddress() % channels)) {
+
+    }
+  }
+}
+
+//Updates synchronization based on exterior signal
+void TowerRobot::updateSync(int size) {
+  if (irtInit) {
+    //Sets synchronization start to closest channel increment
+    int time = millis();
+    syncStart = time - round((time - syncStart) / (double) size)*size;
   }
 }
 
@@ -332,6 +369,7 @@ void TowerRobot::endYield() {
 //Sends yielding signal
 void TowerRobot::sendYield() {
   //Includes address and closest tower in signal
+  waitSync(2, IR_CYCLE);
   irt->send(MASTER_ADDRESS, POLL, irt->getAddress()*4 + closestTower);
   irt->waitSend();
 }
@@ -339,6 +377,7 @@ void TowerRobot::sendYield() {
 //Sends done signal
 void TowerRobot::sendDone() {
   //Includes closest tower and updated height in signal
+  waitSync(2, IR_CYCLE);
   irt->send(MASTER_ADDRESS, DONE, towerHeights[closestTower]*4 + closestTower);
   irt->waitSend();
 }
@@ -354,8 +393,6 @@ bool TowerRobot::updateYield() {
       //Sends done signal for previous tower
       sendDone();
 
-      delay(DELAY_CYCLE);
-
       //Sets new closest tower
       closestTower = turret->closestTower();
 
@@ -368,6 +405,9 @@ bool TowerRobot::updateYield() {
       //Updates signals
       irt->update();
       if (irt->receive(&command, &data)) {
+        //Updates channel synchronization
+        updateSync();
+
         if ((yieldMode == PENDING) && (command == POLL) && (data / 4 > irt->getAddress()) && (data % 4 == closestTower)) {
           //Blocks movement when superior address is interfering on same tower
           yieldMode = BLOCKED;
