@@ -105,12 +105,11 @@ void loop() {
 
   //If no availiable tower, ensures yield is being updated
   if (!availiable) {
-    robot.beginYield();
     slide.moveToBlock(0);
     turret.moveToCarry(turret.closestTower());
     robot.waitSlideTurret();
     while (true) {
-      robot.updateYield();
+
     }
   }
 
