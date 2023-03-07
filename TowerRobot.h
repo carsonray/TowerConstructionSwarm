@@ -36,14 +36,15 @@ namespace IRcommands {
 
 	//Controller address
 	#define CONTROL_ADDRESS 0x1
-	
-	//Command                                                                                                                                    
-  	#define POLL 0x0
-	#define DONE 0x1
-	
-  	#define CLOSEST_TOWER 0x2   
-	#define UPDATE_HEIGHT 0x3
 
+	//Done signal
+	#define DONE 0x0
+	
+	//Yielding updates                                                                                                                                   
+  	#define LOADING 0x1
+	#define UNLOADING 0x2
+
+	//Remote control commands
 	#define SLIDE 0xA
 	#define TURRET 0xB
 	#define CARRY 0xC
@@ -88,7 +89,7 @@ class TowerRobot {
 				double clearMargin = 0.3;
 
 				//Current block position
-				int currBlockPos = 0;
+				int targetBlockPos = 0;
 
 				double convertToBlock(double raw);
 				double convertToRaw(double block);
@@ -112,7 +113,7 @@ class TowerRobot {
 				void home(double homePos);
 
 				double getHomePos();
-				int getBlockPos();
+				int targetBlock();
 				double getClearMargin();
 				double getStepError();
 
@@ -141,7 +142,7 @@ class TowerRobot {
 				double defMax = 70;
 
 				//Current tower position
-				int currTowerPos = 0;
+				int targetTowerPos = 0;
 
 				//Tower positions
 				double towerPos[4] = {0, 90, 180, 270};
@@ -169,7 +170,7 @@ class TowerRobot {
 				double targetPosition(bool global);
 				
 				double getTowerPos(int tower);
-				int getCurrTower();
+				int targetTower();
 
 				double getStepError();
 
@@ -394,7 +395,6 @@ class TowerRobot {
 		void endYield();
 		
 		void sendYield();
-		void sendDone();
 
 		bool updateYield();
 
@@ -418,9 +418,6 @@ class TowerRobot {
 		//Yielding mode
 		int yieldMode = DORMANT;
 
-		//Current closest tower
-		int closestTower = 0;
-
 		//Block heights of each tower
 		int towerHeights[4] = {0, 0, 0, 0};
 
@@ -432,6 +429,18 @@ class TowerRobot {
 
 		//Time of synchronization
 		int syncStart = 0;
+
+		//Turret angle tracker
+		double turretAngle = 0;
+
+		//Angle to send signals at (0 - 90)
+		double sendAngle = 45;
+
+		//Direction of avoid shift
+		int avoidDir = 0;
+
+		//Amount of avoid shift
+		double avoidShift = 0.3;
 };
 
 #endif

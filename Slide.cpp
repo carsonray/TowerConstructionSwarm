@@ -124,8 +124,8 @@ double TowerRobot::Slide::getHomePos() {
   return homePos;
 }
 
-int TowerRobot::Slide::getBlockPos() {
-  return currBlockPos;
+int TowerRobot::Slide::targetBlock() {
+  return targetBlockPos;
 }
 
 double TowerRobot::Slide::getClearMargin() {
@@ -153,7 +153,7 @@ void TowerRobot::Slide::moveToBlock(double blockPos, double accel, double max) {
   stepper->setMaxSpeed(convertToRaw(max));
   stepper->moveTo(convertToRaw(blockPos));
 
-  currBlockPos = round(blockPos);
+  targetBlockPos = round(blockPos);
 }
 
 //Moves to clear position above block
@@ -163,7 +163,7 @@ void TowerRobot::Slide::moveToClear(int blockPos) {
 void TowerRobot::Slide::moveToClear(int blockPos, double accel, double max) {
   moveToBlock(blockPos + clearMargin, accel, max);
 
-  currBlockPos = blockPos;
+  targetBlockPos = blockPos;
 }
 
 //Moves relatively by blocks

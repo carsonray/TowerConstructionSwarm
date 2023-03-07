@@ -104,11 +104,38 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     //Opens gripper to clear towers
     gripper->open();
 
-    //Moves to correct position
-    slide->moveToBlock(blockNum);
-    turret->moveToTower(tower);
-    if (!waitSlideTurret()) {
-      return false;
+    if (irtInit) {
+      //Moves slide to zero to avoid unloading robots
+      slide->moveToBlock(0);
+      turret->moveToCarry(turret->nextTowerTo(tower));
+      bool slideRun = true;
+      bool turretRun = true;
+      while (slideRun || turretRun) {
+        if (!updateYield()) {
+          return false;
+        }
+
+        //Runs slide and turret
+        slideRun = slide->run();
+        turretRun = turret->run();
+
+        //Moves turret to final position if slide is down all the way
+        if (!slideRun) {
+          turret->moveToTower(tower);
+
+          //Moves slide to final position if turret is close enough
+          if (turret->closestTower() == tower) {
+            slide->moveToBlock(blockNum);
+          }
+        }
+      }
+    } else {
+      //Moves to correct position
+      slide->moveToBlock(blockNum);
+      turret->moveToTower(tower);
+      if (!waitSlideTurret()) {
+        return false;
+      }
     }
   } else {
     //Corrects block number to be greater than tower height
@@ -117,14 +144,17 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     }
     
     //If not at correct tower
-    if (turret->getCurrTower() != tower) {
+    if (turret->targetTower() != tower) {
       //Moves to clear current tower
-      if (slide->currentPosition() - (towerHeights[turret->getCurrTower()] + slide->getClearMargin()) < -slide->getStepError()) {
-        slide->moveToClear(towerHeights[turret->getCurrTower()]);
-        while(slide->run()) {
-          if (!updateYield()) {
-            return false;
-          }
+      int clearHeight = towerHeights[turret->targetTower()];
+      if (irtInit && (clearHeight == 0)) {
+        //Cannot move block along 0 position without collision
+        clearHeight = 1;
+      }
+      if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
+        slide->moveToClear(clearHeight);
+        if (!waitSlideTurret()) {
+          return false;
         }
       }
 
@@ -168,19 +198,15 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
 
       //Rotates final step to tower
       turret->moveToTower(tower);
-      while(turret->run()) {
-        if (!updateYield()) {
-          return false;
-        }
+      if (!waitSlideTurret()) {
+        return false;
       }
     }
 
     //Moves to correct block position
     slide->moveToBlock(blockNum);
-    while(slide->run()) {
-      if (!updateYield()) {
-        return false;
-      }
+    if (!waitSlideTurret()) {
+      return false;
     }
   }
 
@@ -350,8 +376,8 @@ void TowerRobot::beginYield() {
       yieldMode = PENDING;
     }
 
-    //Resets closest tower
-    closestTower = turret->closestTower();
+    //Updates turret angle
+    turretAngle = Utils::modulo(turret->currentPosition(), 90);
   }
 }
 
@@ -360,25 +386,21 @@ void TowerRobot::endYield() {
   if (irtInit && yieldActive) {
     //Activates dormant mode
     yieldMode = DORMANT;
-
-    //Sends done signal
-    sendDone();
   }
 }
 
 //Sends yielding signal
 void TowerRobot::sendYield() {
-  //Includes address and closest tower in signal
   waitSync(2, IR_CYCLE);
-  irt->send(MASTER_ADDRESS, POLL, irt->getAddress()*4 + closestTower);
-  irt->waitSend();
-}
-
-//Sends done signal
-void TowerRobot::sendDone() {
-  //Includes closest tower and updated height in signal
-  waitSync(2, IR_CYCLE);
-  irt->send(MASTER_ADDRESS, DONE, towerHeights[closestTower]*4 + closestTower);
+  //Chooses loading or unloading command
+  int command;
+  if (cargo == 0) {
+    command = LOADING;
+  } else {
+    command = UNLOADING;
+  }
+  //Sends yield with address and next tower
+  irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + turret->nextTowerTo(turret->targetTower()));
   irt->waitSend();
 }
 
@@ -388,17 +410,26 @@ bool TowerRobot::updateYield() {
   unsigned int command, data;
 
   if (irtInit && (yieldMode != DORMANT)) {
-    //If closest tower has changed
-    if (closestTower != turret->closestTower()) {
-      //Sends done signal for previous tower
-      sendDone();
+    //Gets new turret angle
+    double newAngle = Utils::modulo(turret->currentPosition(), 90);
 
-      //Sets new closest tower
-      closestTower = turret->closestTower();
+    //Gets direction of movement
+    int dir = Utils::sign(turret->distanceToGo());
 
-      //Sends yield signal for new tower
+    //Uses corresponding send angle if direction is negative
+    double useSendAngle = sendAngle;
+    if (dir < 0) {
+      useSendAngle = 90 - sendAngle;
+    }
+
+    //If angle has passed send threshold
+    if ((turretAngle*dir < useSendAngle*dir) && (newAngle*dir > useSendAngle*dir)) {
+      //Sends yield signal
       sendYield();
     }
+
+    //Updates turret angle
+    turretAngle = newAngle;
 
     //Loops until not blocked
     while (true) {
@@ -406,22 +437,27 @@ bool TowerRobot::updateYield() {
       irt->update();
       if (irt->receive(&command, &data)) {
         //Updates channel synchronization
-        updateSync();
+        updateSync(IR_CYCLE);
 
-        if ((yieldMode == PENDING) && (command == POLL) && (data / 4 > irt->getAddress()) && (data % 4 == closestTower)) {
-          //Blocks movement when superior address is interfering on same tower
-          yieldMode = BLOCKED;
-          blocked = true;
-
-          //Moves to carry position to avoid interference
-          turret->moveToCarry(closestTower);
-          turret->wait();
-        } else if ((yieldMode == BLOCKED) && (command == DONE) && (data % 4 == closestTower)) {
+        if (yieldMode == PENDING) {
+          //If next tower matches
+          if (data % 4 == turret->nextTowerTo(turret->targetTower())) {
+            //If targets match or both are unloading
+            if ((turret->targetTower() == turret->closestTower()) || (cargo > 0) && (command == UNLOADING)) {
+              if ((data / 4) % 2 == 0) {
+                //Blocks movement when superior address is interfering on same tower
+                yieldMode = BLOCKED;
+                blocked = true;
+              } else {
+                //Ensures inferior address is blocked
+                waitSync(2, IR_CYCLE);
+                sendYield();
+              }
+            }
+          }
+        } else if ((yieldMode == BLOCKED) && (data % 4 != turret->targetTower())) {
           //Resumes pending when interference no longer exists
           yieldMode = PENDING;
-
-          //Updates tower height
-          towerHeights[closestTower] = data / 4;
         }
       }
 

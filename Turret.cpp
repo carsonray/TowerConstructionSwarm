@@ -83,8 +83,8 @@ double TowerRobot::Turret::getTowerPos(int tower) {
 }
 
 //Gets current tower position
-int TowerRobot::Turret::getCurrTower() {
-  return currTowerPos;
+int TowerRobot::Turret::targetTower() {
+  return targetTowerPos;
 }
 
 double TowerRobot::Turret::getStepError() {
@@ -114,29 +114,21 @@ int TowerRobot::Turret::numPos() {
 
 //Gets next tower in direction
 int TowerRobot::Turret::nextTower(int change) {
-  return nextTower(currTowerPos, change);
+  return nextTower(targetTowerPos, change);
 }
 int TowerRobot::Turret::nextTower(int curr, int change) {
   //Increments tower position
-  int newTower = curr + change;
-
-  if (newTower < 0) {
-    //Gets equivalent modulo in positive domain
-    return numPos() - (abs(newTower) % numPos());
-  } else {
-    //Gets regular modulo
-    return newTower % numPos();
-  }
+  return Utils::modulo(curr + change, numPos)
 }
 
 
 //Gets next tower traveling to target
 int TowerRobot::Turret::nextTowerTo(int target) {
-  return nextTowerTo(currTowerPos, target);
+  return nextTowerTo(targetTowerPos, target);
 }
 int TowerRobot::Turret::nextTowerTo(int curr, int target) {
   //Gets next tower in shortest direction of travel
-  return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[currTowerPos])));
+  return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[targetTowerPos])));
 }
 
 //Runs Turret step
@@ -187,7 +179,7 @@ void TowerRobot::Turret::moveToTower(int tower, double accel, double max) {
   moveTo(false, towerPos[tower], accel, max);
 
   //Sets tower position
-  currTowerPos = tower;
+  targetTowerPos = tower;
 }
 
 //Moves to carry position next to tower
@@ -200,7 +192,7 @@ void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
 
   //Ensures dir is not zero
   if (dir == 0) {
-    dir = -1;
+    dir = 1;
   }
 
   //Corrects target position with carry offset
@@ -209,5 +201,5 @@ void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   moveTo(false, target, accel, max);
 
   //Sets tower position
-  currTowerPos = tower;
+  targetTowerPos = tower;
 }

@@ -54,7 +54,7 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 int targetColor = BLUE;
 
 //Target tower
-int targetTower = 0;
+int targetTowerPos = 0;
 
 //Cargo limit
 int cargoLimit = 3;
@@ -114,9 +114,9 @@ void loop() {
   }
 
   //Gets load tower
-  if (openTowers[targetTower]) {
+  if (openTowers[targetTowerPos]) {
     //Ensures target tower is fully unloaded
-    loadTower = targetTower;
+    loadTower = targetTowerPos;
   } else {
     //Gets random availiable load tower
     while (true) {
@@ -205,7 +205,7 @@ void loop() {
   }
 
   //Ensures full towers are not moved unless it is non-target blocks off of the target tower or all target blocks on non-target tower
-  if ((currBlock != 0) || (startedTarget != (loadTower == targetTower))) {
+  if ((currBlock != 0) || (startedTarget != (loadTower == targetTowerPos))) {
     //Grabs higher up if cargo limit was reached
     if ((currHeight - currBlock) > cargoLimit) {
       currBlock = currHeight - cargoLimit;
@@ -218,9 +218,9 @@ void loop() {
 
     //Loops until unloaded
     while (true) {
-      if (startedTarget && (loadTower != targetTower)) {
+      if (startedTarget && (loadTower != targetTowerPos)) {
         //Ensures target blocks are unloaded on target tower
-        unloadTower = targetTower;
+        unloadTower = targetTowerPos;
       } else {
         //Unloads on random tower
         while (true) {
@@ -228,7 +228,7 @@ void loop() {
           unloadTower = random(0, 4);
 
           //Ensures uneccesary blocks are not unloaded on same load tower or target tower
-          if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
+          if ((unloadTower != loadTower) && (unloadTower != targetTowerPos)) {
             break;
           }
         }
