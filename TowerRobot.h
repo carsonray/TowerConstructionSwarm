@@ -183,6 +183,9 @@ class TowerRobot {
 				int nextTowerTo(int target);
 				int nextTowerTo(int curr, int target);
 
+				int prevTowerTo(int target);
+				int prevTowerTo(int curr, int target);
+
 				bool run();
 				void stop(bool brake);
 
@@ -401,7 +404,7 @@ class TowerRobot {
 		void endYield();
 		
 		void sendYield();
-		void sendTowerUpdate();
+		void sendTowerHeight();
 
 		bool updateYield();
 

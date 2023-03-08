@@ -104,13 +104,16 @@ void loop() {
     availiable = availiable || openTowers[i];
   }
 
-  //If no availiable tower, ensures yield is being updated
+  //If no availiable tower, moves out of way
   if (!availiable) {
     slide.moveToBlock(0);
     turret.moveToCarry(turret.closestTower());
     robot.waitSlideTurret();
+    
+    //Sends last tower height
+    robot.sendTowerHeight();
     while (true) {
-      
+
     }
   }
 

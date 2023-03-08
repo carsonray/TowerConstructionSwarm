@@ -271,6 +271,9 @@ bool TowerRobot::load(int tower, int blockNum) {
     //Updates tower height and cargo
     cargo = towerHeights[tower] - blockNum;
     towerHeights[tower] -= cargo;
+
+    //Sends tower height
+    sendTowerHeight();
   }
 
   return true;
@@ -291,15 +294,15 @@ bool TowerRobot::unload(int tower) {
     gripper->open();
     gripper->wait();
 
-    //Updates tower height
-    sendTowerUpdate();
-
     //Ends yielding
     endYield();
 
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
     cargo = 0;
+
+    //Sends tower height
+    sendTowerHeight();
   }
 
   return true;
@@ -413,19 +416,16 @@ void TowerRobot::sendYield() {
     //Sends yield with address and next tower
     irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + turret->nextTowerTo(turret->targetTower()));
     irt->waitSend();
-
-    //Updates tower height at next tower
-    sendTowerUpdate();
   }
 }
 
 //Sends tower update signal
-void TowerRobot::sendTowerUpdate() {
+void TowerRobot::sendTowerHeight() {
   if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
-    //Updates tower height at next tower
-    int nextTower = turret->nextTowerTo(turret->targetTower());
-    irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
+    //Updates tower height at previous tower
+    int prevTower = turret->prevTowerTo(turret->targetTower());
+    irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[prevTower]*4 + prevTower);
     irt->waitSend();
   }
 }
@@ -452,6 +452,9 @@ bool TowerRobot::updateYield() {
     if ((turretAngle*dir < useSendAngle*dir) && (newAngle*dir > useSendAngle*dir)) {
       //Sends yield signal
       sendYield();
+
+      //Sends previous tower height
+      sendTowerHeight();
     }
 
     //Updates turret angle
@@ -471,12 +474,18 @@ bool TowerRobot::updateYield() {
             if (command == TOWER_HEIGHT) {
               //Updates tower height
               towerHeights[turret->nextTowerTo(turret->targetTower())] = data / 4;
-            } else if ((turret->targetTower() == turret->closestTower()) || (cargo > 0) && (command == UNLOADING)) {
+            } else if ((turret->targetTower() == turret->closestTower()) || (command == UNLOADING)) {
               //If targets match or both are unloading
               if ((data / 4) % 2 == 0) {
                 //Blocks movement when superior address is interfering on same tower
                 yieldMode = BLOCKED;
                 blocked = true;
+
+                //If loading, move to carry position to avoid interference with unloading robot
+                if (cargo == 0) {
+                  turret->moveToCarry(turret->nextTowerTo(turret->targetTower()));
+                  turret->wait();
+                }
               } else {
                 //Ensures inferior address is blocked
                 irt->waitSync(2, IR_CYCLE);
