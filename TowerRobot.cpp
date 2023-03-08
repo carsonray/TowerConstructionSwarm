@@ -291,6 +291,9 @@ bool TowerRobot::unload(int tower) {
     gripper->open();
     gripper->wait();
 
+    //Updates tower height
+    sendTowerUpdate();
+
     //Ends yielding
     endYield();
 
@@ -412,6 +415,14 @@ void TowerRobot::sendYield() {
     irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
     irt->waitSend();
 
+    //Updates tower height
+    sendTowerUpdate();
+  }
+}
+
+//Sends tower update signal
+void TowerRobot::sendTowerUpdate() {
+  if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
     //Updates tower height
     irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
@@ -459,7 +470,7 @@ bool TowerRobot::updateYield() {
           if (data % 4 == turret->nextTowerTo(turret->targetTower())) {
             if (command == TOWER_HEIGHT) {
               //Updates tower height
-              towerHeights[turret->nextTowerTo(turret->targetTower())];
+              towerHeights[turret->nextTowerTo(turret->targetTower())] = data / 4;
             } else if ((turret->targetTower() == turret->closestTower()) || (cargo > 0) && (command == UNLOADING)) {
               //If targets match or both are unloading
               if ((data / 4) % 2 == 0) {
