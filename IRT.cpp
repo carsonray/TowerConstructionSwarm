@@ -243,3 +243,31 @@ void TowerRobot::IRT::synchronize(int num, int interval) {
   setSendRepeats(10);
   waitSend();
 }
+
+//Starts channel synchronization
+void TowerRobot::IRT::beginSync() {
+  syncStart = millis();
+}
+
+//Waits until time channel is open
+void TowerRobot::IRT::waitSync(int channels, int size) {
+  if (irtInit) {
+    //Waits for incorrect parity
+    while (((millis() - syncStart)/size) % channels != (irt->getAddress() % channels)) {
+      irt->update();
+    }
+    //Waits for correct parity
+    while (((millis() - syncStart)/size) % channels == (irt->getAddress() % channels)) {
+      irt->update();
+    }
+  }
+}
+
+//Updates synchronization based on channel increment
+void TowerRobot::IRT::updateSync(unsigned long timestamp, int size) {
+  if (irtInit) {
+    //Sets synchronization start to closest channel increment
+    int time = millis();
+    syncStart = time - round((time - syncStart) / (double) size)*size;
+  }
+}

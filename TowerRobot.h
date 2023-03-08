@@ -316,6 +316,9 @@ class TowerRobot {
 				//Current recieved data
 				unsigned int recvData = 0;
 
+				//Time of synchronization start
+				unsigned long syncStart = 0;
+
 				//Timestamp for last received signal
 				unsigned long timestamp = 0;
 
@@ -361,6 +364,9 @@ class TowerRobot {
 				void update();
 
 				void synchronize(int num, int interval);
+				void beginSync();
+				void waitSync(int channels, int size);
+				void updateSync(unsigned long timestamp, int size);
 		};
 
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
@@ -388,8 +394,6 @@ class TowerRobot {
 		int scanBlock(int tower, int blockNum);
 
 		void synchronize();
-		void waitSync(int channels, int size);
-		void updateSync(unsigned long timestamp, int size);
 		
 		void setAutoRelay(bool active);
 		void setYieldActive(bool active);
@@ -430,20 +434,11 @@ class TowerRobot {
 		//Margin for color sensor to read block
 		double sensorMargin = 0.3;
 
-		//Time of synchronization
-		int syncStart = 0;
-
 		//Turret angle tracker
 		double turretAngle = 0;
 
 		//Angle to send signals at (0 - 90)
 		double sendAngle = 45;
-
-		//Direction of avoid shift
-		int avoidDir = 0;
-
-		//Amount of avoid shift
-		double avoidShift = 0.3;
 };
 
 #endif

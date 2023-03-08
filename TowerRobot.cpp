@@ -146,24 +146,34 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     
     //If not at correct tower
     if (turret->targetTower() != tower) {
-      //Moves to clear current tower
-      int clearHeight = towerHeights[turret->targetTower()];
-
-      //Ensures unloading robots are staggered
-      if (irtInit && (clearHeight % 2 != irt->getAddress() % 2)) {
-        clearHeight += 1;
+      int clearHeight;
+      if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
+        clearHeight = towerHeights[turret->targetTower()];
+      } else {
+        clearHeight = slide->blockTarget();
       }
+        
+      //Moves to clear current tower
+      if (irtInit) {
+        //Ensures unloading robots are staggered
+        if (clearHeight % 2 != irt->getAddress() % 2) {
+          clearHeight += 1;
+        }
 
-      //Ensures unloading robots are not at zero position to run into loading robots
-      if (clearHeight == 0) {
-        clearHeight = 2;
+        //Ensures unloading robots are not at zero position to run into loading robots
+        if (clearHeight == 0) {
+          clearHeight = 2;
+        }
       }
       
-      if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
+      //Moves to position and clears tower if necessary
+      if (clearHeight == towerHeights[turret->targetTower()]) {
         slide->moveToClear(clearHeight);
-        if (!waitSlideTurret()) {
-          return false;
-        }
+      } else {
+        slide->moveToBlock(clearHeight);
+      }
+      if (!waitSlideTurret()) {
+        return false;
       }
 
       //Loops through towers between current and target
@@ -172,7 +182,19 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
         //If current position will not clear tower
         if (slide->currentPosition() - (towerHeights[testPos] + slide->getClearMargin()) < -slide->getStepError()) {
           //Moves to height of obstructing tower
-          slide->moveToClear(towerHeights[testPos]);
+          clearHeight = towerHeights[testPos];
+
+          //Ensures unloading robots are staggered
+          if (irtInit && (clearHeight % 2 != irt->getAddress() % 2)) {
+            clearHeight += 1;
+          }
+
+          //Moves to position and clears tower if necessary
+          if (clearHeight == towerHeights[testPos]) {
+            slide->moveToClear(clearHeight);
+          } else {
+            slide->moveToBlock(clearHeight);
+          }
 
           //Moves to carry position next to tower
           turret->moveToCarry(testPos);
@@ -298,7 +320,7 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     }
 
     //Gets color of block
-    waitSync(2, COLOR_CYCLE);
+    irt->waitSync(2, COLOR_CYCLE);
     int blockColor = colorSensor->getBlockColor();
 
     //Updates tower height
@@ -326,8 +348,8 @@ void TowerRobot::synchronize() {
       irt->receive(&command, &data);
 
       if (command == DONE) {
-        //Sets synchronization start
-        syncStart = millis();
+        //Starts synchronization
+        irt->beginSync();
 
         //Relays done signal
         sleep(IR_CYCLE);
@@ -336,29 +358,6 @@ void TowerRobot::synchronize() {
         break;
       }
     }
-  }
-}
-
-//Waits until time channel is open
-void TowerRobot::waitSync(int channels, int size) {
-  if (irtInit) {
-    //Waits for incorrect parity
-    while (((millis() - syncStart)/size) % channels != (irt->getAddress() % channels)) {
-      irt->update();
-    }
-    //Waits for correct parity
-    while (((millis() - syncStart)/size) % channels == (irt->getAddress() % channels)) {
-      irt->update();
-    }
-  }
-}
-
-//Updates synchronization based on exterior signal
-void TowerRobot::updateSync(unsigned long timestamp, int size) {
-  if (irtInit) {
-    //Sets synchronization start to closest channel increment
-    int time = millis();
-    syncStart = time - round((time - syncStart) / (double) size)*size;
   }
 }
 
@@ -399,7 +398,7 @@ void TowerRobot::endYield() {
 
 //Sends yielding signal
 void TowerRobot::sendYield() {
-  waitSync(2, IR_CYCLE);
+  irt->waitSync(2, IR_CYCLE);
   //Chooses loading or unloading command
   int command;
   if (cargo == 0) {
@@ -412,7 +411,7 @@ void TowerRobot::sendYield() {
   irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
   irt->waitSend();
 
-  waitSync(2, IR_CYCLE);
+  irt->waitSync(2, IR_CYCLE);
   //Updates tower height
   irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
   irt->waitSend();
@@ -451,7 +450,7 @@ bool TowerRobot::updateYield() {
       irt->update();
       if (irt->receive(&command, &data)) {
         //Updates channel synchronization
-        updateSync(irt->getTimestamp(), IR_CYCLE);
+        irt->updateSync(irt->getTimestamp(), IR_CYCLE);
 
         if (yieldMode == PENDING) {
           //If next tower matches
@@ -467,7 +466,7 @@ bool TowerRobot::updateYield() {
                 blocked = true;
               } else {
                 //Ensures inferior address is blocked
-                waitSync(2, IR_CYCLE);
+                irt->waitSync(2, IR_CYCLE);
                 sendYield();
               }
             }
