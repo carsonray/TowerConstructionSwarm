@@ -21,7 +21,7 @@ static int Utils::sign(double val) {
 }
 
 //Gets modulo that works with negative numbers
-static int Utis::modulo(int dividend, int divisor) {
+static int Utils::modulo(int dividend, int divisor) {
     if (dividend < 0) {
         //Gets equivalent modulo in positive domain
         return divisor - (abs(dividend) % divisor);
@@ -31,12 +31,6 @@ static int Utis::modulo(int dividend, int divisor) {
     }
 }
 
-static double Utis::modulo(double dividend, double divisor) {
-    if (dividend < 0) {
-        //Gets equivalent modulo in positive domain
-        return divisor - (abs(dividend) % divisor);
-    } else {
-        //Gets regular modulo
-        return dividend % divisor;
-    }
+static double Utils::modulo(double dividend, double divisor) {
+    return dividend - floor(dividend/divisor)*divisor;
 }

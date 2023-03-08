@@ -96,7 +96,6 @@ void loop() {
     //And has blocks on it
     //And is availiable
     while (true) {
-      randomSeed(analogRead(A0));
       loadTower = random(0, 4);
 
       if ((loadTower != unloadTower) && (robot.getTowerHeight(loadTower) > 0) && openTowers[loadTower]) {
@@ -194,7 +193,6 @@ void loop() {
     } else {
       //Unloads on random tower
       while (true) {
-        randomSeed(analogRead(A0));
         unloadTower = random(0, 4);
 
         //Ensures uneccesary blocks are not unloaded on same load tower or target tower

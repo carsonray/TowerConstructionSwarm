@@ -104,7 +104,8 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     //Opens gripper to clear towers
     gripper->open();
 
-    if (irtInit) {
+    //If needs to move to different tower
+    if (irtInit && (tower != turret->targetTower())) {
       //Moves slide to zero to avoid unloading robots
       slide->moveToBlock(0);
       turret->moveToCarry(turret->nextTowerTo(tower));
@@ -147,10 +148,17 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     if (turret->targetTower() != tower) {
       //Moves to clear current tower
       int clearHeight = towerHeights[turret->targetTower()];
-      if (irtInit && (clearHeight == 0)) {
-        //Cannot move block along 0 position without collision
-        clearHeight = 1;
+
+      //Ensures unloading robots are staggered
+      if (irtInit && (clearHeight % 2 != irt->getAddress() % 2)) {
+        clearHeight += 1;
       }
+
+      //Ensures unloading robots are not at zero position to run into loading robots
+      if (clearHeight == 0) {
+        clearHeight = 2;
+      }
+      
       if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
         slide->moveToClear(clearHeight);
         if (!waitSlideTurret()) {
@@ -346,7 +354,7 @@ void TowerRobot::waitSync(int channels, int size) {
 }
 
 //Updates synchronization based on exterior signal
-void TowerRobot::updateSync(int size) {
+void TowerRobot::updateSync(unsigned long timestamp, int size) {
   if (irtInit) {
     //Sets synchronization start to closest channel increment
     int time = millis();
@@ -377,7 +385,7 @@ void TowerRobot::beginYield() {
     }
 
     //Updates turret angle
-    turretAngle = Utils::modulo(turret->currentPosition(), 90);
+    turretAngle = Utils::modulo(turret->currentPosition(), 90.0);
   }
 }
 
@@ -417,7 +425,7 @@ bool TowerRobot::updateYield() {
 
   if (irtInit && (yieldMode != DORMANT)) {
     //Gets new turret angle
-    double newAngle = Utils::modulo(turret->currentPosition(), 90);
+    double newAngle = Utils::modulo(turret->currentPosition(), 90.0);
 
     //Gets direction of movement
     int dir = Utils::sign(turret->distanceToGo());

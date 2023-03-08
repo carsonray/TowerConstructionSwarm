@@ -62,8 +62,7 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned 
   
   //Sets defaults for sending
   currInterval = 0;
-  minInterval = 0;
-  maxInterval = 0;
+  setInterval = 0;
 
   currRepeats = 0;
   sendRepeats = 1;
@@ -73,12 +72,7 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned 
 
 //Sets interval between repeats
 void TowerRobot::IRT::setSendInterval(int interval) {
-  setSendInterval(interval, interval);
-}
-//Sets random interval between bounds
-void TowerRobot::IRT::setSendInterval(int minTime, int maxTime) {
-  minInterval = minTime;
-  maxInterval = maxTime;
+  setInterval = interval;
 }
 
 //Sets number of repeats
@@ -96,19 +90,8 @@ void TowerRobot::IRT::useInterval() {
   //Updates last send time
   lastSend = millis();
 
-  //Calculates new interval
-  randomSeed(analogRead(A0));
-  switch (random(0, 3)) {
-    case 0:
-      currInterval = minInterval;
-      break;
-    case 1:
-      currInterval = (minInterval + maxInterval) / 2;
-      break;
-    case 2:
-      currInterval = maxInterval;
-      break;
-  }
+  //Sets interval
+  currInterval = setInterval;
 }
 
 //Whether transceiver is currently sending
@@ -219,7 +202,7 @@ void TowerRobot::IRT::update() {
     if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
       //Timestamps signal
       timestamp = millis();
-      
+
       //Unpacks signal
       unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
 

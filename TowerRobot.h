@@ -289,11 +289,8 @@ class TowerRobot {
 				//Current repeating interval
 				int currInterval = 0;
 				
-				//Minimum repeating signal interval
-				int minInterval = 0;
-
-				//Maximum repeating signal interval
-				int maxInterval = 0;
+				//Interval to use
+				int setInterval = 0;
 
 				//Current signal repeats
 				int currRepeats = 0;

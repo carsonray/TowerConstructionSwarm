@@ -118,7 +118,7 @@ int TowerRobot::Turret::nextTower(int change) {
 }
 int TowerRobot::Turret::nextTower(int curr, int change) {
   //Increments tower position
-  return Utils::modulo(curr + change, numPos)
+  return Utils::modulo(curr + change, numPos());
 }
 
 

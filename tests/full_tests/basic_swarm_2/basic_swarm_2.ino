@@ -120,7 +120,6 @@ void loop() {
   } else {
     //Gets random availiable load tower
     while (true) {
-      randomSeed(analogRead(A0));
       loadTower = random(0, 4);
 
       if (openTowers[loadTower]) {
@@ -224,7 +223,6 @@ void loop() {
       } else {
         //Unloads on random tower
         while (true) {
-          randomSeed(analogRead(A0));
           unloadTower = random(0, 4);
 
           //Ensures uneccesary blocks are not unloaded on same load tower or target tower
