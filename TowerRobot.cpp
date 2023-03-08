@@ -411,11 +411,10 @@ void TowerRobot::sendYield() {
       command = UNLOADING;
     }
     //Sends yield with address and next tower
-    int nextTower = turret->nextTowerTo(turret->targetTower());
-    irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
+    irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + turret->nextTowerTo(turret->targetTower()));
     irt->waitSend();
 
-    //Updates tower height
+    //Updates tower height at next tower
     sendTowerUpdate();
   }
 }
@@ -424,7 +423,8 @@ void TowerRobot::sendYield() {
 void TowerRobot::sendTowerUpdate() {
   if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
-    //Updates tower height
+    //Updates tower height at next tower
+    int nextTower = turret->nextTowerTo(turret->targetTower());
     irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
     irt->waitSend();
   }

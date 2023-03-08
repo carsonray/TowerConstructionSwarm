@@ -339,7 +339,6 @@ class TowerRobot {
 				void send(unsigned int address, unsigned int command, unsigned int data);
 
 				void setSendInterval(int interval);
-				void setSendInterval(int minTime, int maxTime);
 
 				void setSendRepeats(int repeats);
 				void resetSendRepeats();
@@ -402,6 +401,7 @@ class TowerRobot {
 		void endYield();
 		
 		void sendYield();
+		void sendTowerUpdate();
 
 		bool updateYield();
 
