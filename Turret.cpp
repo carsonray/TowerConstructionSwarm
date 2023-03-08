@@ -128,7 +128,7 @@ int TowerRobot::Turret::nextTowerTo(int target) {
 }
 int TowerRobot::Turret::nextTowerTo(int curr, int target) {
   //Gets next tower in shortest direction of travel
-  return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[targetTowerPos])));
+  return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[curr])));
 }
 
 //Runs Turret step

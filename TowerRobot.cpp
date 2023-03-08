@@ -43,9 +43,6 @@ void TowerRobot::home() {
   home(slide->getHomePos());
 }
 void TowerRobot::home(double homePos) {
-  pinMode(A0, INPUT);
-  randomSeed(analogRead(A0));
-
   if (irtInit) {
     irt->begin();
   }
@@ -150,7 +147,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
       if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
         clearHeight = towerHeights[turret->targetTower()];
       } else {
-        clearHeight = slide->blockTarget();
+        clearHeight = slide->targetBlock();
       }
         
       //Moves to clear current tower
@@ -223,7 +220,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
         }
 
         //Moves to next tower position
-        testPos = turret->nextTowerTo(tower);
+        testPos = turret->nextTowerTo(testPos, tower);
       }
 
       //Rotates final step to tower
@@ -320,7 +317,10 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     }
 
     //Gets color of block
-    irt->waitSync(2, COLOR_CYCLE);
+    if (irtInit) {
+      irt->waitSync(2, COLOR_CYCLE);
+    }
+
     int blockColor = colorSensor->getBlockColor();
 
     //Updates tower height
@@ -398,23 +398,25 @@ void TowerRobot::endYield() {
 
 //Sends yielding signal
 void TowerRobot::sendYield() {
-  irt->waitSync(2, IR_CYCLE);
-  //Chooses loading or unloading command
-  int command;
-  if (cargo == 0) {
-    command = LOADING;
-  } else {
-    command = UNLOADING;
-  }
-  //Sends yield with address and next tower
-  int nextTower = turret->nextTowerTo(turret->targetTower());
-  irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
-  irt->waitSend();
+  if (irtInit) {
+    irt->waitSync(2, IR_CYCLE);
+    //Chooses loading or unloading command
+    int command;
+    if (cargo == 0) {
+      command = LOADING;
+    } else {
+      command = UNLOADING;
+    }
+    //Sends yield with address and next tower
+    int nextTower = turret->nextTowerTo(turret->targetTower());
+    irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + nextTower);
+    irt->waitSend();
 
-  irt->waitSync(2, IR_CYCLE);
-  //Updates tower height
-  irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
-  irt->waitSend();
+    irt->waitSync(2, IR_CYCLE);
+    //Updates tower height
+    irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[nextTower]*4 + nextTower);
+    irt->waitSend();
+  }
 }
 
 //Updates yield protocol
