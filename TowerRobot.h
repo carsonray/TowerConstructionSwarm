@@ -319,6 +319,9 @@ class TowerRobot {
 				//Current recieved data
 				unsigned int recvData = 0;
 
+				//Timestamp for last received signal
+				unsigned long timestamp = 0;
+
 				//Whether signals for other addresses are automatically relayed
 				bool autoRelay = false;
 				
@@ -354,6 +357,8 @@ class TowerRobot {
 				void waitReceive();
 				bool waitReceive(int timeout);
 
+				unsigned long getTimestamp();
+
 				void setAutoRelay(bool active);
 
 				void update();
@@ -387,7 +392,7 @@ class TowerRobot {
 
 		void synchronize();
 		void waitSync(int channels, int size);
-		void updateSync(int size);
+		void updateSync(unsigned long timestamp, int size);
 		
 		void setAutoRelay(bool active);
 		void setYieldActive(bool active);

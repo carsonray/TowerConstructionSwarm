@@ -336,11 +336,11 @@ void TowerRobot::waitSync(int channels, int size) {
   if (irtInit) {
     //Waits for incorrect parity
     while (((millis() - syncStart)/size) % channels != (irt->getAddress() % channels)) {
-
+      irt->update();
     }
     //Waits for correct parity
     while (((millis() - syncStart)/size) % channels == (irt->getAddress() % channels)) {
-
+      irt->update();
     }
   }
 }
@@ -443,7 +443,7 @@ bool TowerRobot::updateYield() {
       irt->update();
       if (irt->receive(&command, &data)) {
         //Updates channel synchronization
-        updateSync(IR_CYCLE);
+        updateSync(irt->getTimestamp(), IR_CYCLE);
 
         if (yieldMode == PENDING) {
           //If next tower matches

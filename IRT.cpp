@@ -201,6 +201,11 @@ bool TowerRobot::IRT::waitReceive(int timeout) {
   return recvExists;
 }
 
+//Gets timestamp of last received signal
+unsigned long TowerRobot::IRT::getTimestamp() {
+  return timestamp;
+}
+
 //Sets whether non-directed signals are relayed
 void TowerRobot::IRT::setAutoRelay(bool active) {
   autoRelay = active;
@@ -212,6 +217,9 @@ void TowerRobot::IRT::update() {
   if (recvActive && IrReceiver.decode()) {
     //Ensures protocol is correct and is not interfering with sending
     if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
+      //Timestamps signal
+      timestamp = millis();
+      
       //Unpacks signal
       unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
 
