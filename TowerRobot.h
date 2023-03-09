@@ -42,8 +42,9 @@ namespace IRcommands {
 	
 	//Yielding updates                                                                                                                                   
   	#define LOAD 0x1
-	#define UNLOAD 0x2
-	#define TOWER_HEIGHT 0x3
+	#define UNLOAD_TRAVEL 0x2
+	#define UNLOAD_TARGET 0x3
+	#define TOWER_HEIGHT 0x4
 
 	//Remote control commands
 	#define SLIDE 0xA

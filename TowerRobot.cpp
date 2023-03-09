@@ -397,15 +397,33 @@ void TowerRobot::endYield() {
 void TowerRobot::sendYield() {
   if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
+
+    //Next tower
+    unsigned int nextTower = turret->nextTowerTo(turretTarget);
+
+    //Target indicator
+    unsigned int isTarget = (int) (nextTower == turretTarget);
+
     //Chooses loading or unloading command
-    int command;
     if (cargo == 0) {
-      command = LOAD;
+      //Sends load data with target indicator and next tower
+      irt->send(MASTER_ADDRESS, LOAD, isTarget*4 + nextTower);
     } else {
-      command = UNLOAD;
+      //Unload data with clear height and next tower
+      unsigned int data = (slideTarget + cargo)*4 + nextTower;
+
+      //Sets command based on target indicator
+      unsigned int command;
+      if (isTarget) {
+        command = UNLOAD_TARGET;
+      } else {
+        command = UNLOAD_TRAVEL
+      }
+
+      //Sends data
+      irt->send(MASTER_ADDRESS, command, data);
     }
-    //Sends yield with target tower and next tower
-    irt->send(MASTER_ADDRESS, command, turretTarget*4 + turret->nextTowerTo(turretTarget));
+    
     irt->waitSend();
   }
 }
@@ -414,7 +432,7 @@ void TowerRobot::sendYield() {
 void TowerRobot::sendTowerHeight() {
   if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
-    //Updates tower height at previous tower
+    //Sends tower height at previous tower
     int prevTower = turret->prevTowerTo(turret->targetTower());
     irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[prevTower]*4 + prevTower);
     irt->waitSend();
@@ -441,11 +459,11 @@ bool TowerRobot::updateYield() {
 
     //If angle has passed send threshold
     if ((turretAngle*dir < useSendAngle*dir) && (newAngle*dir > useSendAngle*dir)) {
-      //Sends yield signal
-      sendYield();
-
       //Sends previous tower height
       sendTowerHeight();
+
+      //Sends yield signal
+      sendYield();
     }
 
     //Updates turret angle
@@ -470,23 +488,53 @@ bool TowerRobot::updateYield() {
 
             //Updates tower height
             towerHeights[nextTower] = data / 4;
-          } else if ((yieldMode = PENDING) && ((data / 4 == turretTarget) || (cargo > 0) || (command == UNLOAD))) {
-            //If targets match or one is unloading
-            if ((cargo > 0) && (command == LOAD)) {
-              //If unloading, ensures other robot is blocked if it is loading
-              sendYield();
-              sendTowerHeight();
+          } else if (yieldMode = PENDING) {
+            //Whether other robot is loading
+            bool otherLoading;
+
+            //Whether both are going to target
+            bool targetMatch;
+
+            //Sets values based on command
+            if (command == LOAD) {
+              otherLoading = true;
+
+              //Gets target match based on indicator
+              targetMatch = (data / 4);
             } else {
-              //Activates blocking mode
-              yieldMode = BLOCKED;
+              otherLoading = false;
 
-              //Complete block occurs if targets match
-              blocked = (data / 4 == turretTarget);
+              //Gets target match based on command
+              targetMatch = (command == UNLOAD_TARGET);
+            }
 
-              //If loading and other robot is unloading, move to carry position
-              if ((cargo == 0) && (command == UNLOAD)) {
-                turret->moveToCarry(nextTower);
-                turret->wait();
+            //Ensures current robot is headed to target
+            targetMatch = targetMatch && (nextTower == turretTarget);
+
+            if (targetMatch || (cargo > 0) || !otherLoading) {
+              //If targets match or any robot is unloading
+              if ((cargo > 0) && otherLoading) {
+                //If unloading, ensures other robot is blocked if it is loading
+                sendYield();
+              } else {
+                //Activates blocking mode
+                yieldMode = BLOCKED;
+
+                //Complete block occurs if targets match
+                blocked = targetMatch;
+
+                //If other robot is unloading
+                if (!otherLoading) {
+                  //If unloading, move to clear other robot
+                  if (cargo > 0) {
+                    slide->moveToClear(data / 4);
+                    slide->wait();
+                  }
+                  
+                  //Move to carry position to avoid interference
+                  turret->moveToCarry(nextTower);
+                  turret->wait();
+                }
               }
             }
           }
