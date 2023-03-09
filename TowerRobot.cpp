@@ -417,7 +417,7 @@ void TowerRobot::sendYield() {
       if (isTarget) {
         command = UNLOAD_TARGET;
       } else {
-        command = UNLOAD_TRAVEL
+        command = UNLOAD_TRAVEL;
       }
 
       //Sends data
