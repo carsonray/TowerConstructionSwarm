@@ -486,8 +486,10 @@ bool TowerRobot::updateYield() {
             //Resumes if blocked
             yieldMode = PENDING;
 
-            //Updates tower height
-            towerHeights[nextTower] = data / 4;
+            //Updates tower height if it is greater
+            if (data / 4 > towerHeights[nextTower]) {
+              towerHeights[nextTower] = data / 4;
+            }
           } else if (yieldMode = PENDING) {
             //Whether other robot is loading
             bool otherLoading;
