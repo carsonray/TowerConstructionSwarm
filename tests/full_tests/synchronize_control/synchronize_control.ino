@@ -7,7 +7,7 @@ using namespace IRcommands;
 
 void setup() {
   irt.begin();
-  irt.synchronize(2, 500);
+  irt.synchronize();
 }
 
 void loop() {

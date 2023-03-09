@@ -366,7 +366,7 @@ class TowerRobot {
 
 				void update();
 
-				void synchronize(int num, int interval);
+				void synchronize();
 				void beginSync();
 				void waitSync(int channels, int size);
 				void updateSync(unsigned long timestamp, int size);

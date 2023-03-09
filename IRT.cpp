@@ -236,11 +236,9 @@ void TowerRobot::IRT::update() {
 }
 
 //Synchronizes robots
-void TowerRobot::IRT::synchronize(int num, int interval) {
+void TowerRobot::IRT::synchronize() {
   //Sends ready signal
   send(MASTER_ADDRESS, DONE, address);
-  setSendInterval(100);
-  setSendRepeats(10);
   waitSend();
 }
 
