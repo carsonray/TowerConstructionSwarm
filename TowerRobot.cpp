@@ -519,7 +519,7 @@ bool TowerRobot::updateYield() {
               otherToTarget = (command == UNLOAD_TARGET);
             }
 
-            if ((toTarget || otherToTarget) && ((cargo > 0) && !otherLoading)) {
+            if ((toTarget || otherToTarget) || ((cargo > 0) && !otherLoading)) {
               //If any robot is going to target or both are unloading
               if ((cargo > 0) && otherLoading) {
                 //If unloading, ensures other robot is blocked if it is loading
