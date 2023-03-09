@@ -246,41 +246,43 @@ bool TowerRobot::load(int tower) {
   return load(tower, towerHeights[tower] - 1);
 }
 bool TowerRobot::load(int tower, int blockNum) {
-  //Ensures block is not negative
-  if (blockNum >= 0) {
-    blockNum = 0;
-  }
+  if (cargo == 0) {
+    //Ensures block is not negative
+    if (blockNum >= 0) {
+      blockNum = 0;
+    }
 
-  //Moves to correct tower and block
-  turretTarget = tower;
-  slideTarget = blockNum;
+    //Moves to correct tower and block
+    turretTarget = tower;
+    slideTarget = blockNum;
 
-  if (!moveToBlock(tower, blockNum)) {
-    return false;
-  }
-
-  //Sends yielding signal
-  if (irtInit) {
-    sendYield();
-
-    sleep(IR_CYCLE*2);
-
-    if (!updateYield()) {
+    if (!moveToBlock(tower, blockNum)) {
       return false;
     }
+
+    //Sends yielding signal
+    if (irtInit) {
+      sendYield();
+
+      sleep(IR_CYCLE*2);
+
+      if (!updateYield()) {
+        return false;
+      }
+    }
+
+    //Closes gripper
+    gripper->close();
+    gripper->wait();
+
+    //Sends done signal
+    sendDone();
+
+    //Updates tower height and cargo
+    cargo = towerHeights[tower] - blockNum;
+    towerHeights[tower] -= cargo;
   }
-
-  //Closes gripper
-  gripper->close();
-  gripper->wait();
-
-  //Updates tower height and cargo
-  cargo = towerHeights[tower] - blockNum;
-  towerHeights[tower] -= cargo;
-
-  //Sends tower height
-  sendTowerHeight();
-
+  
   return true;
 }
 
@@ -299,15 +301,20 @@ bool TowerRobot::unload(int tower) {
     gripper->open();
     gripper->wait();
 
+    //Sends done signal
+    sendDone();
+
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
     cargo = 0;
-
-    //Sends tower height
-    sendTowerHeight();
   }
 
   return true;
+}
+
+//Gets robot cargo
+int TowerRobot::getCargo() {
+  return cargo;
 }
 
 //Scans color of particular block
@@ -428,13 +435,11 @@ void TowerRobot::sendYield() {
   }
 }
 
-//Sends tower update signal
-void TowerRobot::sendTowerHeight() {
+//Sends done signal to previous tower
+void TowerRobot::sendDone() {
   if (irtInit) {
     irt->waitSync(2, IR_CYCLE);
-    //Sends tower height at previous tower
-    int prevTower = turret->prevTowerTo(turret->targetTower());
-    irt->send(MASTER_ADDRESS, TOWER_HEIGHT, towerHeights[prevTower]*4 + prevTower);
+    irt->send(MASTER_ADDRESS, DONE, turret->prevTowerTo(turret->targetTower()));
     irt->waitSend();
   }
 }
@@ -459,8 +464,8 @@ bool TowerRobot::updateYield() {
 
     //If angle has passed send threshold
     if ((turretAngle*dir < useSendAngle*dir) && (newAngle*dir > useSendAngle*dir)) {
-      //Sends previous tower height
-      sendTowerHeight();
+      //Sends done signal to previous tower
+      sendDone();
 
       //Sends yield signal
       sendYield();
@@ -482,14 +487,9 @@ bool TowerRobot::updateYield() {
 
         //If next tower matches
         if (data % 4 == nextTower) {
-          if (command == TOWER_HEIGHT) {
+          if (command == DONE) {
             //Resumes if blocked
             yieldMode = PENDING;
-
-            //Updates tower height if it is greater
-            if (data / 4 > towerHeights[nextTower]) {
-              towerHeights[nextTower] = data / 4;
-            }
           } else if (yieldMode = PENDING) {
             //Whether other robot is loading
             bool otherLoading;
@@ -572,4 +572,80 @@ void TowerRobot::remoteControl() {
       }
     }
   }
+}
+
+//Finds height of tower
+int TowerRobot::findHeight(int tower, int* bufferColors) {
+  //Gets predicted tower height
+  int currHeight = towerHeights[tower];
+  int currBlock = currHeight;
+
+  //Resets buffer color array
+  for (int i = 0; i < 10; i++) {
+    *(bufferColors + i) = -2;
+  }
+  
+  //Finds actual tower height
+  bool startedEmpty = false;
+  while (currBlock >= 0) {
+    int checkColor = scanBlock(tower, currBlock);
+
+    //Checks whether the first check was empty
+    if (currBlock == currHeight) {
+      startedEmpty = (checkColor == EMPTY);
+    }
+
+    //Updates buffer array with color
+    if (checkColor != EMPTY) {
+      *(bufferColors + currBlock) = checkColor;
+    }    
+    
+    if (startedEmpty) {
+      //Moves down until tower is found
+      if (checkColor != EMPTY) {
+        break;
+      }
+      currBlock--;
+    } else {
+      //Moves up until no tower is found
+      if (checkColor == EMPTY) {
+        break;
+      }
+      currBlock++;
+    }
+  }
+
+  //Returns height
+  return towerHeights[tower];
+}
+
+
+//Scans tower for target blocks
+int TowerRobot::scanTower(int tower, int color, bool* startedTarget, int* bufferColors) {
+  //Loops through checked colors and then finds more colors if necessary
+  int currBlock;
+  for (currBlock = towerHeights[tower]; currBlock > 0;) {
+    currBlock--;
+
+    //If color is not read, reads it in
+    int checkColor = *(bufferColors + currBlock);
+    if (checkColor == -2) {
+      checkColor = scanBlock(tower, currBlock);
+    }
+
+    //Checks whether the top of the tower was the target color
+    if (currBlock == (towerHeights[tower] - 1)) {
+      *startedTarget = (checkColor == color);
+    }
+
+    //Breaks if color changes away or to target color
+    if (*startedTarget != (checkColor == color)) {
+      //Moves to block before change
+      currBlock++;
+      break;
+    }
+  }
+
+  //Returns wether tower started with target blocks
+  return currBlock;
 }

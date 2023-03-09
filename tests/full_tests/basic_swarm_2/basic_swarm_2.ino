@@ -54,7 +54,7 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 int targetColor = BLUE;
 
 //Target tower
-int targetTowerPos = 0;
+int targetTower = 0;
 
 //Cargo limit
 int cargoLimit = 3;
@@ -70,17 +70,8 @@ int unloadTower = -1;
 //Current height of tower
 int currHeight;
 
-//Current block on tower
-int currBlock;
-
-//Current color of block
-int checkColor;
-
 //Buffer array to fill with colors
 int bufferColors[10] = {-2, -2, -2, -2, -2, -2, -2, -2, -2, -2};
-
-//Difference between buffer array and actual tower
-int bufferDiff = 0;
 
 //Array to show which towers are availiable
 bool openTowers[4] = {true, true, true, true};
@@ -109,18 +100,15 @@ void loop() {
     slide.moveToBlock(0);
     turret.moveToCarry(turret.closestTower());
     robot.waitSlideTurret();
-    
-    //Sends last tower height
-    robot.sendTowerHeight();
     while (true) {
 
     }
   }
 
   //Gets load tower
-  if (openTowers[targetTowerPos]) {
+  if (openTowers[targetTower]) {
     //Ensures target tower is fully unloaded
-    loadTower = targetTowerPos;
+    loadTower = targetTower;
   } else {
     //Gets random availiable load tower
     while (true) {
@@ -132,115 +120,55 @@ void loop() {
     }
   }
   
-  //Gets predicted tower height
-  currHeight = robot.getTowerHeight(loadTower);
-  currBlock = currHeight;
-
-  //Resets buffer color array
-  for (int i = 0; i < 10; i++) {
-    bufferColors[i] = -2;
-  }
-  
-  //Finds actual tower height
-  bool startedEmpty = false;
-  while (currBlock >= 0) {
-    checkColor = robot.scanBlock(loadTower, currBlock);
-
-    //Checks whether the first check was empty
-    if (currBlock == currHeight) {
-      startedEmpty = (checkColor == EMPTY);
-    }
-
-    //Updates buffer array with color
-    if (checkColor != EMPTY) {
-      bufferColors[currBlock] = checkColor;
-    }    
-    
-    if (startedEmpty) {
-      //Moves down until tower is found
-      if (checkColor != EMPTY) {
-        break;
-      }
-      currBlock--;
-    } else {
-      //Moves up until no tower is found
-      if (checkColor == EMPTY) {
-        break;
-      }
-      currBlock++;
-    }
-  }
-
   //Updates tower height
-  currHeight = robot.getTowerHeight(loadTower);
-  currBlock = currHeight;
+  currHeight = robot.findHeight(loadTower, bufferColors);
 
   //Ends if height is zero
-  if (currHeight== 0) {
+  if (currHeight == 0) {
     return;
   }
  
-  //Whether the top of the tower was the target color
-  bool startedTarget = false;
-
-  //Loops through checked colors and then finds more colors if necessary
-  while (currBlock > 0) {
-    //Moves down tower
-    currBlock--;
-
-    //If color is not read, reads it in
-    checkColor = bufferColors[currBlock];
-    if (checkColor == -2) {
-      checkColor = robot.scanBlock(loadTower, currBlock);
-    }
-
-    //Checks whether the top of the tower was the target color
-    if (currBlock == (currHeight - 1)) {
-      startedTarget = (checkColor == targetColor);
-    }
-
-    //Breaks if color changes away or to target color
-    if (startedTarget != (checkColor == targetColor)) {
-      //Moves to block before change
-      currBlock++;
-      break;
-    }
-  }
+  bool startedTarget;
+  int loadBlock = robot.scanTower(loadTower, targetColor, &startedTarget, bufferColors);
 
   //Ensures full towers are not moved unless it is non-target blocks off of the target tower or all target blocks on non-target tower
-  if ((currBlock != 0) || (startedTarget != (loadTower == targetTowerPos))) {
+  if ((loadBlock != 0) || (startedTarget != (loadTower == targetTower))) {
     //Grabs higher up if cargo limit was reached
-    if ((currHeight - currBlock) > cargoLimit) {
-      currBlock = currHeight - cargoLimit;
-    }
-    
-    //Loads block if not blocked
-    if (!robot.load(loadTower, currBlock)) {
-      return;
+    if ((currHeight - loadBlock) > cargoLimit) {
+      loadBlock = currHeight - cargoLimit;
     }
 
     //Loops until unloaded
     while (true) {
-      if (startedTarget && (loadTower != targetTowerPos)) {
+      if (startedTarget && (loadTower != targetTower)) {
         //Ensures target blocks are unloaded on target tower
-        unloadTower = targetTowerPos;
+        unloadTower = targetTower;
+
+        //Updates height of target tower
+        robot.findHeight(unloadTower, bufferColors);
       } else {
         //Unloads on random tower
         while (true) {
           unloadTower = random(0, 4);
 
           //Ensures uneccesary blocks are not unloaded on same load tower or target tower
-          if ((unloadTower != loadTower) && (unloadTower != targetTowerPos)) {
+          if ((unloadTower != loadTower) && (unloadTower != targetTower)) {
             break;
           }
         }
       }
 
+      //Loads block if possible
+      if (!robot.load(loadTower, loadBlock)) {
+        return;
+      }
+
+      //Waits until block is unloaded
       if (robot.unload(unloadTower)) {
         break;
       }
     }
-  } else if (currBlock == 0) {
+  } else if (loadBlock == 0) {
     //Locks tower if nothing should be loaded
     openTowers[loadTower] = false;
   }

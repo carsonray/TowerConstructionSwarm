@@ -44,7 +44,6 @@ namespace IRcommands {
   	#define LOAD 0x1
 	#define UNLOAD_TRAVEL 0x2
 	#define UNLOAD_TARGET 0x3
-	#define TOWER_HEIGHT 0x4
 
 	//Remote control commands
 	#define SLIDE 0xA
@@ -394,6 +393,8 @@ class TowerRobot {
 
 		bool unload(int tower);
 
+		int getCargo();
+
 		int scanBlock(int tower, int blockNum);
 
 		void synchronize();
@@ -404,11 +405,14 @@ class TowerRobot {
 		void endYield();
 		
 		void sendYield();
-		void sendTowerHeight();
+		void sendDone();
 
 		bool updateYield();
 
 		void remoteControl();
+
+		int findHeight(int tower, int* bufferColors);
+		int scanTower(int tower, int color, bool* startedTarget, int* bufferColors);
 	private:
 		Slide* slide;
 		Turret* turret;
