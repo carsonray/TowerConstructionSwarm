@@ -450,6 +450,9 @@ class TowerRobot {
 		//Turret angle tracker
 		double turretAngle = 0;
 
+		//Slide position tracker
+		double slidePos = 0;
+
 		//Angle to send signals at (0 - 90)
 		double sendAngle = 45;
 };

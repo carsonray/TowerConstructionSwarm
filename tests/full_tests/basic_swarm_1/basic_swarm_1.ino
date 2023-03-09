@@ -138,14 +138,27 @@ void loop() {
       loadBlock = currHeight - cargoLimit;
     }
 
+    //Loads block if possible
+    if (!robot.load(loadTower, loadBlock)) {
+      return;
+    }
+
     //Loops until unloaded
     while (true) {
       if (startedTarget && (loadTower != targetTower)) {
         //Ensures target blocks are unloaded on target tower
         unloadTower = targetTower;
 
+        //Moves cargo to adaject tower
+        int cargo = robot.getCargo();
+        int adjacentTower = turret.nextTower(targetTower, -1);
+        robot.unload(adjacentTower);
+
         //Updates height of target tower
         robot.findHeight(unloadTower, bufferColors);
+
+        //Reloads cargo
+        robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo);
       } else {
         //Unloads on random tower
         while (true) {
@@ -156,11 +169,6 @@ void loop() {
             break;
           }
         }
-      }
-
-      //Loads block if possible
-      if (!robot.load(loadTower, loadBlock)) {
-        return;
       }
 
       //Waits until block is unloaded
