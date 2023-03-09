@@ -246,16 +246,21 @@ bool TowerRobot::load(int tower) {
   return load(tower, towerHeights[tower] - 1);
 }
 bool TowerRobot::load(int tower, int blockNum) {
-  //Moves to correct tower and block
+  //Ensures block is not negative
   if (blockNum >= 0) {
-    //Begins yielding
-    beginYield();
+    blockNum = 0;
+  }
 
-    if (!moveToBlock(tower, blockNum)) {
-      return false;
-    }
+  //Moves to correct tower and block
+  turretTarget = tower;
+  slideTarget = blockNum;
 
-    //Sends yielding signal
+  if (!moveToBlock(tower, blockNum)) {
+    return false;
+  }
+
+  //Sends yielding signal
+  if (irtInit) {
     sendYield();
 
     sleep(IR_CYCLE*2);
@@ -263,18 +268,18 @@ bool TowerRobot::load(int tower, int blockNum) {
     if (!updateYield()) {
       return false;
     }
-
-    //Closes gripper
-    gripper->close();
-    gripper->wait();
-
-    //Updates tower height and cargo
-    cargo = towerHeights[tower] - blockNum;
-    towerHeights[tower] -= cargo;
-
-    //Sends tower height
-    sendTowerHeight();
   }
+
+  //Closes gripper
+  gripper->close();
+  gripper->wait();
+
+  //Updates tower height and cargo
+  cargo = towerHeights[tower] - blockNum;
+  towerHeights[tower] -= cargo;
+
+  //Sends tower height
+  sendTowerHeight();
 
   return true;
 }
@@ -282,20 +287,17 @@ bool TowerRobot::load(int tower, int blockNum) {
 //Unloads block(s) on top of tower
 bool TowerRobot::unload(int tower) {
   if (cargo > 0) {
-    //Begins yielding
-    beginYield();
-
     //Moves one block above top of tower
-    if (!moveToBlock(tower, towerHeights[tower])) {
+    turretTarget = tower;
+    slideTarget = towerHeights[tower];
+
+    if (!moveToBlock(tower, slideTarget)) {
       return false;
     }
 
     //Opens gripper
     gripper->open();
     gripper->wait();
-
-    //Ends yielding
-    endYield();
 
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
@@ -314,11 +316,11 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     //Opens gripper to clear towers
     gripper->open();
 
-    //Begins yielding
-    beginYield();
-
     //Moves to tower clockwise from target to align color sensor with target
-    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
+    turretTarget = turret->nextTower(tower, -1);
+    slideTarget = blockNum;
+
+    if (!moveToBlock(turretTarget, blockNum + sensorMargin)) {
       return -2;
     }
 
@@ -335,8 +337,6 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     } else if ((blockColor == EMPTY) && (blockNum < towerHeights[tower])) {
       towerHeights[tower] = blockNum;
     }
-
-    endYield();
 
     return blockColor;
   } else {
@@ -372,18 +372,9 @@ void TowerRobot::setAutoRelay(bool active) {
   irt->setAutoRelay(active);
 }
 
-//Sets whether movements are yielded to other robots
-void TowerRobot::setYieldActive(bool active) {
-  yieldActive = active;
-  if (!yieldActive) {
-    //Sets dormant mode
-    yieldMode = DORMANT;
-  }
-}
-
-//Begins polling signal
+//Begins yielding
 void TowerRobot::beginYield() {
-  if (irtInit && yieldActive) {
+  if (irtInit) {
     //Activates pending mode
     if (yieldMode == DORMANT) {
       yieldMode = PENDING;
@@ -394,9 +385,9 @@ void TowerRobot::beginYield() {
   }
 }
 
-//Ends polling signal
+//Ends yielding
 void TowerRobot::endYield() {
-  if (irtInit && yieldActive) {
+  if (irtInit) {
     //Activates dormant mode
     yieldMode = DORMANT;
   }
@@ -409,12 +400,12 @@ void TowerRobot::sendYield() {
     //Chooses loading or unloading command
     int command;
     if (cargo == 0) {
-      command = LOADING;
+      command = LOAD;
     } else {
-      command = UNLOADING;
+      command = UNLOAD;
     }
-    //Sends yield with address and next tower
-    irt->send(MASTER_ADDRESS, command, irt->getAddress()*4 + turret->nextTowerTo(turret->targetTower()));
+    //Sends yield with target tower and next tower
+    irt->send(MASTER_ADDRESS, command, turretTarget*4 + turret->nextTowerTo(turretTarget));
     irt->waitSend();
   }
 }
@@ -468,34 +459,37 @@ bool TowerRobot::updateYield() {
         //Updates channel synchronization
         irt->updateSync(irt->getTimestamp(), IR_CYCLE);
 
-        if (yieldMode == PENDING) {
-          //If next tower matches
-          if (data % 4 == turret->nextTowerTo(turret->targetTower())) {
-            if (command == TOWER_HEIGHT) {
-              //Updates tower height
-              towerHeights[turret->nextTowerTo(turret->targetTower())] = data / 4;
-            } else if ((turret->targetTower() == turret->closestTower()) || (command == UNLOADING)) {
-              //If targets match or both are unloading
-              if ((data / 4) % 2 == 0) {
-                //Blocks movement when superior address is interfering on same tower
-                yieldMode = BLOCKED;
-                blocked = true;
+        //Gets next tower
+        int nextTower = turret->nextTowerTo(turretTarget);
 
-                //If loading, move to carry position to avoid interference with unloading robot
-                if (cargo == 0) {
-                  turret->moveToCarry(turret->nextTowerTo(turret->targetTower()));
-                  turret->wait();
-                }
-              } else {
-                //Ensures inferior address is blocked
-                irt->waitSync(2, IR_CYCLE);
-                sendYield();
+        //If next tower matches
+        if (data % 4 == nextTower) {
+          if (command == TOWER_HEIGHT) {
+            //Resumes if blocked
+            yieldMode = PENDING;
+
+            //Updates tower height
+            towerHeights[nextTower] = data / 4;
+          } else if ((yieldMode = PENDING) && ((data / 4 == turretTarget) || (cargo > 0) || (command == UNLOAD))) {
+            //If targets match or one is unloading
+            if ((cargo > 0) && (command == LOAD)) {
+              //If unloading, ensures other robot is blocked if it is loading
+              sendYield();
+              sendTowerHeight();
+            } else {
+              //Activates blocking mode
+              yieldMode = BLOCKED;
+
+              //Complete block occurs if targets match
+              blocked = (data / 4 == turretTarget);
+
+              //If loading and other robot is unloading, move to carry position
+              if ((cargo == 0) && (command == UNLOAD)) {
+                turret->moveToCarry(nextTower);
+                turret->wait();
               }
             }
           }
-        } else if ((yieldMode == BLOCKED) && (data % 4 != turret->targetTower())) {
-          //Resumes pending when interference no longer exists
-          yieldMode = PENDING;
         }
       }
 

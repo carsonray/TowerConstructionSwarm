@@ -41,8 +41,8 @@ namespace IRcommands {
 	#define DONE 0x0
 	
 	//Yielding updates                                                                                                                                   
-  	#define LOADING 0x1
-	#define UNLOADING 0x2
+  	#define LOAD 0x1
+	#define UNLOAD 0x2
 	#define TOWER_HEIGHT 0x3
 
 	//Remote control commands
@@ -398,7 +398,6 @@ class TowerRobot {
 		void synchronize();
 		
 		void setAutoRelay(bool active);
-		void setYieldActive(bool active);
 
 		void beginYield();
 		void endYield();
@@ -432,7 +431,13 @@ class TowerRobot {
 		int towerHeights[4] = {0, 0, 0, 0};
 
 		//Current number of block cargo
-		int cargo = 0; 
+		int cargo = 0;
+
+		//Target turret position
+		int turretTarget = 0;
+
+		//Target slide position
+		int slideTarget = 0;
 
 		//Margin for color sensor to read block
 		double sensorMargin = 0.3;
