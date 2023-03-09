@@ -142,7 +142,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     }
     
     //If not at correct tower
-    if (turret->targetTower() != tower) {
+    if (tower != turret->targetTower()) {
       int clearHeight;
       if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
         clearHeight = towerHeights[turret->targetTower()];
@@ -229,6 +229,9 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
         return false;
       }
     }
+
+    //Sends yield signal
+    sendYield();
 
     //Moves to correct block position
     slide->moveToBlock(blockNum);
@@ -412,19 +415,19 @@ void TowerRobot::sendYield() {
     unsigned int nextTower = turret->nextTowerTo(turretTarget);
 
     //Target indicator
-    unsigned int isTarget = (int) (nextTower == turretTarget);
+    unsigned int toTarget = (int) (nextTower == turretTarget);
 
     //Chooses loading or unloading command
     if (cargo == 0) {
       //Sends load data with target indicator and next tower
-      irt->send(MASTER_ADDRESS, LOAD, isTarget*4 + nextTower);
+      irt->send(MASTER_ADDRESS, LOAD, toTarget*4 + nextTower);
     } else {
       //Unload data with clear height and next tower
       unsigned int data = (slideTarget + cargo)*4 + nextTower;
 
       //Sets command based on target indicator
       unsigned int command;
-      if (isTarget) {
+      if (toTarget) {
         command = UNLOAD_TARGET;
       } else {
         command = UNLOAD_TRAVEL;
@@ -488,6 +491,9 @@ bool TowerRobot::updateYield() {
         //Gets next tower
         int nextTower = turret->nextTowerTo(turretTarget);
 
+        //Whether robot is heading to target
+        bool toTarget = (nextTower == turretTarget);
+
         //If next tower matches
         if (data % 4 == nextTower) {
           if (command == DONE) {
@@ -497,27 +503,24 @@ bool TowerRobot::updateYield() {
             //Whether other robot is loading
             bool otherLoading;
 
-            //Whether both are going to target
-            bool targetMatch;
+            //Whether other robot is going to target
+            bool otherToTarget;
 
             //Sets values based on command
             if (command == LOAD) {
               otherLoading = true;
 
-              //Gets target match based on indicator
-              targetMatch = (data / 4);
+              //Gets target state based on indicator
+              otherToTarget = (data / 4);
             } else {
               otherLoading = false;
 
-              //Gets target match based on command
-              targetMatch = (command == UNLOAD_TARGET);
+              //Gets target state based on command
+              otherToTarget = (command == UNLOAD_TARGET);
             }
 
-            //Ensures current robot is headed to target
-            targetMatch = targetMatch && (nextTower == turretTarget);
-
-            if (targetMatch || (cargo > 0) || !otherLoading) {
-              //If targets match or any robot is unloading
+            if ((toTarget || otherToTarget) && ((cargo > 0) && !otherLoading)) {
+              //If any robot is going to target or both are unloading
               if ((cargo > 0) && otherLoading) {
                 //If unloading, ensures other robot is blocked if it is loading
                 sendYield();
@@ -525,8 +528,8 @@ bool TowerRobot::updateYield() {
                 //Activates blocking mode
                 yieldMode = BLOCKED;
 
-                //Complete block occurs if targets match
-                blocked = targetMatch;
+                //Complete block occurs if both are target state
+                blocked = toTarget && otherToTarget;
 
                 //If other robot is unloading
                 if (!otherLoading) {

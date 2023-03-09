@@ -152,13 +152,17 @@ void loop() {
         //Moves cargo to adaject tower
         int cargo = robot.getCargo();
         int adjacentTower = turret.nextTower(targetTower, -1);
-        robot.unload(adjacentTower);
+        while (!robot.unload(adjacentTower)) {
+
+        }
 
         //Updates height of target tower
         robot.findHeight(unloadTower, bufferColors);
 
         //Reloads cargo
-        robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo);
+        if (!robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo)) {
+          return;
+        }
       } else {
         //Unloads on random tower
         while (true) {
