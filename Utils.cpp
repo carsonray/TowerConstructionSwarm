@@ -6,11 +6,6 @@
 #include <Arduino.h>
 #include "Utils.h"
 
-//Takes logarithm with base
-static float Utils::loga(float base, float arg) {
-    return log(arg)/log(base);
-}
-
 //Sets sign of value
 static int Utils::sign(double val) {
     if (val == 0) {

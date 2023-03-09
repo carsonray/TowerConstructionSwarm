@@ -479,14 +479,15 @@ bool TowerRobot::updateYield() {
 
     //Gets new slide position
     double newPos = Utils::modulo(slide->currentPosition(), 1.0);
+    if (dir == 0) {
+      //Gets direction of movement
+      dir = Utils::sign(slide->distanceToGo());
 
-    //Gets direction of movement
-    dir = Utils::sign(slide->distanceToGo());
-
-    //If slide position has passed block
-    if (dir != Utils::sign(newPos - slidePos)) {
-      //Sends yield signal
-      sendYield();
+      //If slide position has passed block
+      if ((slidePos*dir > 0.5*dir) && (newPos*dir < 0.5*dir)) {
+        //Sends yield signal
+        sendYield();
+      }
     }
 
     //Updates slide pos

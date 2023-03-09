@@ -10,7 +10,6 @@
 
 class Utils {
     public:
-        static float loga(float base, float arg);
         static int sign(double val);
         static int modulo(int dividend, int divisor);
         static double modulo(double dividend, double divisor);
