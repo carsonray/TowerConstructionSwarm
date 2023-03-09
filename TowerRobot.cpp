@@ -477,22 +477,6 @@ bool TowerRobot::updateYield() {
     //Updates turret angle
     turretAngle = newAngle;
 
-    //Gets new slide position
-    double newPos = Utils::modulo(slide->currentPosition(), 1.0);
-    if (dir == 0) {
-      //Gets direction of movement
-      dir = Utils::sign(slide->distanceToGo());
-
-      //If slide position has passed block
-      if ((slidePos*dir > 0.5*dir) && (newPos*dir < 0.5*dir)) {
-        //Sends yield signal
-        sendYield();
-      }
-    }
-
-    //Updates slide pos
-    slidePos = newPos;
-
     //Loops until not blocked
     while (true) {
       //Updates signals
