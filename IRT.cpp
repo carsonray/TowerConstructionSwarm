@@ -274,5 +274,6 @@ void TowerRobot::IRT::waitChannel(int channels, int size) {
 
 //Moves to next time channel
 void TowerRobot::IRT::nextChannel(int size) {
-  syncStart = timestamp - ((timestamp - syncStart)/size + 1)*size;
+  unsigned long time = millis();
+  syncStart = time - ((time - syncStart)/size + 1)*size;
 }

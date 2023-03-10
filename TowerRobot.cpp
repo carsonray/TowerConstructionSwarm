@@ -425,8 +425,6 @@ void TowerRobot::endYield() {
 //Sends yielding signal
 void TowerRobot::sendYield() {
   if (irtInit) {
-    irt->waitChannel(2, IR_CYCLE);
-
     //Next tower
     unsigned int nextTower = turret->nextTowerTo(turretTarget);
 
@@ -465,7 +463,6 @@ void TowerRobot::sendDone() {
 
     if (prevTower != turretTarget) {
       //Sends previous tower if not the same as target tower
-      irt->waitChannel(2, IR_CYCLE);
       irt->send(MASTER_ADDRESS, DONE, prevTower);
       irt->waitSend();
     }
@@ -507,9 +504,6 @@ bool TowerRobot::updateYield() {
       //Updates signals
       irt->update();
       if (irt->receive(&command, &data)) {
-        //Updates channel synchronization
-        irt->nextChannel(IR_CYCLE);
-
         //Gets next tower
         int nextTower = turret->nextTowerTo(turretTarget);
 
