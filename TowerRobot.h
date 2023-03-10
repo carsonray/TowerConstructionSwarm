@@ -411,6 +411,7 @@ class TowerRobot {
 
 		void remoteControl();
 
+		int findHeight(int tower);
 		int findHeight(int tower, int* bufferColors);
 		int scanTower(int tower, int color, bool* startedTarget, int* bufferColors);
 	private:

@@ -44,17 +44,26 @@ TowerRobot::Gripper gripper = TowerRobot::Gripper(gripPin);
 //Creates towerrobot instance
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper);
 
+int targetTower = 2;
+
 void setup() {
-  robot.setTowerHeights(3, 1, 0, 0);
+  robot.setTowerHeights(1, 1, 0, 0);
   robot.home();
+
+  robot.load(0);
+
+  //Moves cargo to adjacent tower
+  int cargo = robot.getCargo();
+  int adjacentTower = turret.nextTower(targetTower, -1);
+  robot.unload(adjacentTower);
+
+  //Updates height of target tower
+  int height = robot.findHeight(targetTower);
+
+  //Reloads cargo
+  robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo);
 }
 
 void loop() {
-  robot.load(0, 1);
-  robot.unload(1);
-  robot.load(1, 1);
-  robot.unload(0);
-  while(true) {
-
-  }
+  
 }

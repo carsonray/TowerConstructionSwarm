@@ -71,7 +71,7 @@ int unloadTower = -1;
 int currHeight;
 
 //Buffer array to fill with colors
-int bufferColors[10] = {-2, -2, -2, -2, -2, -2, -2, -2, -2, -2};
+int bufferColors[10];
 
 //Array to show which towers are availiable
 bool openTowers[4] = {true, true, true, true};
@@ -151,13 +151,13 @@ void loop() {
 
         //Moves cargo to adaject tower
         int cargo = robot.getCargo();
-        int adjacentTower = turret.nextTower(targetTower, -1);
+        int adjacentTower = turret.nextTower(unloadTower, -1);
         while (!robot.unload(adjacentTower)) {
 
         }
 
         //Updates height of target tower
-        robot.findHeight(unloadTower, bufferColors);
+        robot.findHeight(unloadTower);
 
         //Reloads cargo
         if (!robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo)) {

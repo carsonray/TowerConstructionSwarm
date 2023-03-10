@@ -57,26 +57,19 @@ void TowerRobot::home(double homePos) {
 }
 
 bool TowerRobot::waitSlideTurret() {
-  bool blocked = false;
-
   bool slideRun = true;
   bool turretRun = true;
   while (slideRun || turretRun) {
     //If yielding was blocked
     if (!updateYield()) {
-      blocked = true;
-
-      //Aborts if gripper closed
-      if (!gripper->isOpen()) {
-        break;
-      }
+      return false;
     }
 
     slideRun = slide->run();
     turretRun = turret->run();
   }
 
-  return !blocked;
+  return true;
 }
 
 //Sleeps while updating ir
@@ -251,14 +244,13 @@ bool TowerRobot::load(int tower) {
 bool TowerRobot::load(int tower, int blockNum) {
   if (cargo == 0) {
     //Ensures block is not negative
-    if (blockNum >= 0) {
+    if (blockNum < 0) {
       blockNum = 0;
     }
 
     //Moves to correct tower and block
     turretTarget = tower;
     slideTarget = blockNum;
-
     if (!moveToBlock(tower, blockNum)) {
       return false;
     }
@@ -581,6 +573,9 @@ void TowerRobot::remoteControl() {
 }
 
 //Finds height of tower
+int TowerRobot::findHeight(int tower) {
+  return findHeight(tower, new int[10]);
+}
 int TowerRobot::findHeight(int tower, int* bufferColors) {
   //Gets predicted tower height
   int currHeight = towerHeights[tower];

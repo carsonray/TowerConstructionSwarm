@@ -68,7 +68,7 @@ int unloadTower = -1;
 int currHeight;
 
 //Buffer array to fill with colors
-int bufferColors[10] = {-2, -2, -2, -2, -2, -2, -2, -2, -2, -2};
+int bufferColors[10];
 
 //Array to show which towers are availiable
 bool openTowers[4] = {true, true, true, true};
