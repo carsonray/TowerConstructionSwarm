@@ -151,13 +151,7 @@ void loop() {
         //Ensures target blocks are unloaded on target tower
         unloadTower = targetTower;
 
-        //Sets desired unload tower
-        robot.setTurretTarget(unloadTower);
-
-        //Turns tracking off so that unload tower is not changed
-        robot.setTurretTracking(false);
-
-        //Moves cargo to adaject tower
+        //Moves cargo to adjacent tower
         int cargo = robot.getCargo();
         int adjacentTower = turret.nextTower(unloadTower, -1);
         while (!robot.unload(adjacentTower)) {
@@ -169,13 +163,8 @@ void loop() {
 
         //Reloads cargo
         if (!robot.load(adjacentTower, robot.getTowerHeight(adjacentTower) - cargo)) {
-          //Turns tracking on
-          robot.setTurretTracking(true);
           return;
         }
-
-        //Turns tracking on
-        robot.setTurretTracking(true);
       } else {
         //Unloads on random tower
         while (true) {

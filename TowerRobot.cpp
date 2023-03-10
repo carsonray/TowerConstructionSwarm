@@ -324,24 +324,12 @@ int TowerRobot::getCargo() {
   return cargo;
 }
 
-//Sets whether target positions are tracked
-void TowerRobot::setTurretTracking(bool active) {
-  turretTracking = active;
-}
-void TowerRobot::setSlideTracking(bool active) {
-  slideTracking = active;
-}
-
 //Sets tracking parameters
 void TowerRobot::setTurretTarget(int target) {
-  if (turretTracking) {
-    turretTarget = target;
-  }
+  turretTarget = target;
 }
 void TowerRobot::setSlideTarget(int target) {
-  if (slideTracking) {
-    slideTarget = target;
-  }
+  slideTarget = target;
 }
 
 //Scans color of particular block
@@ -436,7 +424,7 @@ void TowerRobot::endYield() {
 void TowerRobot::sendYield() {
   if (irtInit && (yieldMode == PENDING) && (turretTarget >= 0)) {
     //Next tower
-    unsigned int nextTower = turret->nextTowerTo(turretTarget);
+    unsigned int nextTower = turret->nextTowerTo(turret->targetTower());
 
     //Target indicator
     unsigned int toTarget = (int) (nextTower == turretTarget);
@@ -522,7 +510,7 @@ bool TowerRobot::updateYield() {
         irt->resume();
 
         //Gets next tower
-        int nextTower = turret->nextTowerTo(turretTarget);
+        int nextTower = turret->nextTowerTo(turret->targetTower());
 
         //Whether robot is heading to target
         bool toTarget = (nextTower == turretTarget);
