@@ -249,8 +249,8 @@ bool TowerRobot::load(int tower, int blockNum) {
     }
 
     //Moves to correct tower and block
-    turretTarget = tower;
-    slideTarget = blockNum;
+    setTurretTarget(tower);
+    setSlideTarget(blockNum);
     if (!moveToBlock(tower, blockNum)) {
       return false;
     }
@@ -285,8 +285,8 @@ bool TowerRobot::load(int tower, int blockNum) {
 bool TowerRobot::unload(int tower) {
   if (cargo > 0) {
     //Moves one block above top of tower
-    turretTarget = tower;
-    slideTarget = towerHeights[tower];
+    setTurretTarget(tower);
+    setSlideTarget(towerHeights[tower]);
 
     if (!moveToBlock(tower, slideTarget)) {
       return false;
@@ -312,6 +312,26 @@ int TowerRobot::getCargo() {
   return cargo;
 }
 
+//Sets whether target positions are tracked
+void TowerRobot::setTurretTracking(bool active) {
+  turretTracking = active;
+}
+void TowerRobot::setSlideTracking(bool active) {
+  slideTracking = active;
+}
+
+//Sets tracking parameters
+void TowerRobot::setTurretTarget(int target) {
+  if (turretTracking)
+    turretTarget = target;
+  }
+}
+void TowerRobot::setSlideTarget(int target) {
+  if (slideTracking) {
+    slideTarget = target;
+  }
+}
+
 //Scans color of particular block
 int TowerRobot::scanBlock(int tower, int blockNum) {
   if (colorInit) {
@@ -319,10 +339,10 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     gripper->open();
 
     //Moves to tower clockwise from target to align color sensor with target
-    turretTarget = turret->nextTower(tower, -1);
-    slideTarget = blockNum;
+    setTurretTarget(turret->nextTower(tower, -1));
+    setSlideTarget(blockNum);
 
-    if (!moveToBlock(turretTarget, blockNum + sensorMargin)) {
+    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
       return -2;
     }
 

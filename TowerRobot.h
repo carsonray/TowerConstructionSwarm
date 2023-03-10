@@ -395,6 +395,10 @@ class TowerRobot {
 
 		int getCargo();
 
+		void setTrackingActive(bool active);
+		void setTurretTarget(int target);
+		void setSlideTarget(int target);
+
 		int scanBlock(int tower, int blockNum);
 
 		void synchronize();
@@ -444,6 +448,10 @@ class TowerRobot {
 
 		//Target slide position
 		int slideTarget = 0;
+
+		//Whether target positions are tracked
+		bool turretTracking = true;
+		bool slideTracking = true;
 
 		//Margin for color sensor to read block
 		double sensorMargin = 0.3;
