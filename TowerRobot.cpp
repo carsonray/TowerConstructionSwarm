@@ -322,7 +322,7 @@ void TowerRobot::setSlideTracking(bool active) {
 
 //Sets tracking parameters
 void TowerRobot::setTurretTarget(int target) {
-  if (turretTracking)
+  if (turretTracking) {
     turretTarget = target;
   }
 }

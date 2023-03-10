@@ -395,7 +395,8 @@ class TowerRobot {
 
 		int getCargo();
 
-		void setTrackingActive(bool active);
+		void setTurretTracking(bool active);
+		void setSlideTracking(bool active);
 		void setTurretTarget(int target);
 		void setSlideTarget(int target);
 
