@@ -456,9 +456,15 @@ void TowerRobot::sendYield() {
 //Sends done signal to previous tower
 void TowerRobot::sendDone() {
   if (irtInit) {
-    irt->waitSync(2, IR_CYCLE);
-    irt->send(MASTER_ADDRESS, DONE, turret->prevTowerTo(turret->targetTower()));
-    irt->waitSend();
+    //Gets previous tower
+    int prevTower = turret->prevTowerTo(turret->targetTower());
+
+    if (prevTower != turretTarget) {
+      //Sends previous tower if not the same as target tower
+      irt->waitSync(2, IR_CYCLE);
+      irt->send(MASTER_ADDRESS, DONE, prevTower);
+      irt->waitSend();
+    }
   }
 }
 
