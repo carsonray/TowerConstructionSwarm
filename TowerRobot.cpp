@@ -274,12 +274,12 @@ bool TowerRobot::load(int tower, int blockNum) {
     gripper->close();
     gripper->wait();
 
+    //Sends done signal
+    sendDone();
+
     //Sets ambiguous targets
     setTurretTarget(-1);
     setTurretTarget(-1);
-
-    //Sends done signal
-    sendDone();
 
     //Updates tower height and cargo
     cargo = towerHeights[tower] - blockNum;
@@ -304,12 +304,12 @@ bool TowerRobot::unload(int tower) {
     gripper->open();
     gripper->wait();
 
+    //Sends done signal
+    sendDone();
+
     //Sets ambiguous targets
     setTurretTarget(-1);
     setTurretTarget(-1);
-
-    //Sends done signal
-    sendDone();
 
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
@@ -458,17 +458,9 @@ void TowerRobot::sendYield() {
 //Sends done signal to previous tower
 void TowerRobot::sendDone() {
   if (irtInit && (yieldMode == PENDING)) {
-    //Gets previous tower
-    int prevTower = turret->prevTowerTo(turret->targetTower());
-
-    if (prevTower != turretTarget) {
-      //Sends previous tower if not the same as target tower
-      irt->send(MASTER_ADDRESS, DONE, prevTower);
-
-      //Waits until sent unless something is received
-      irt->setInterrupt();
-      irt->waitSend();
-    }
+    //Sends done at current tower
+    irt->send(MASTER_ADDRESS, DONE, turret->targetTower());
+    irt->waitSend();
   }
 }
 
@@ -492,9 +484,6 @@ bool TowerRobot::updateYield() {
 
     //If angle has passed send threshold
     if ((turretAngle*dir < useSendAngle*dir) && (newAngle*dir > useSendAngle*dir)) {
-      //Sends done signal to previous tower
-      sendDone();
-
       //Sends yield signal for next tower
       sendYield();
     }
@@ -518,7 +507,7 @@ bool TowerRobot::updateYield() {
         //If next tower matches
         if (data % 4 == nextTower) {
           if (command == DONE) {
-            //Resumes if blocked
+            //Unblocks if done sent at tower
             yieldMode = PENDING;
           } else if (yieldMode = PENDING) {
             //Whether other robot is loading
@@ -558,6 +547,11 @@ bool TowerRobot::updateYield() {
                   if (cargo > 0) {
                     slide->moveToClear(data / 4);
                     slide->wait();
+
+                    //Unblocks if not going to same place
+                    if (!blocked) {
+                      yieldMode = PENDING;
+                    }
                   }
                   
                   //Move to carry position to avoid interference
@@ -567,6 +561,9 @@ bool TowerRobot::updateYield() {
               }
             }
           }
+        } else if (yieldMode == BLOCKED) {
+          //Unblocks if yield sent at another tower
+          yieldMode = PENDING;
         }
       }
 

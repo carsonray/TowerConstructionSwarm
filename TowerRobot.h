@@ -466,7 +466,7 @@ class TowerRobot {
 		double turretAngle = 0;
 
 		//Angle to send signals at (0 - 90)
-		double sendAngle = 30;
+		double sendAngle = 35;
 };
 
 #endif
