@@ -339,8 +339,8 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     gripper->open();
 
     //Moves to tower clockwise from target to align color sensor with target
-    if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
-      return -2;
+    while (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
+      
     }
 
     //Gets color of block
