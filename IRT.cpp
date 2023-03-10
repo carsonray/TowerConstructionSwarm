@@ -220,15 +220,22 @@ void TowerRobot::IRT::update() {
   if (sendActive) {
     //Checks to see if there are still repeats left and interval is reached
     if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
+      //Sets send repeats to zero to avoid recursion
+      int hold = sendRepeats;
+      sendRepeats = 0;
+
+      //Waits for channel and sends
+      waitChannel(numChannels, IR_CYCLE);
+      IrSender.sendNEC(sendAddress, sendCommand, 0);
+
+      //Resets
+      sendRepeats = hold;
+
       //Sets interval
       useInterval();
 
       //Increments repeats
       currRepeats++;
-
-      //Waits for channel and sends
-      waitChannel(numChannels, IR_CYCLE);
-      IrSender.sendNEC(sendAddress, sendCommand, 0);
     }
   }
 }
