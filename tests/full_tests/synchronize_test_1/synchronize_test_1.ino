@@ -51,6 +51,7 @@ TowerRobot::IRT irt = TowerRobot::IRT(CONTROL_ADDRESS+1, 3, 5);
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 
 void setup() {
+  robot.begin();
   robot.setTowerHeights(5, 0, 0, 0);
   robot.setAutoRelay(true);
   robot.home();

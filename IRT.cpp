@@ -184,11 +184,6 @@ bool TowerRobot::IRT::waitReceive(int timeout) {
   return recvExists;
 }
 
-//Gets timestamp of last received signal
-unsigned long TowerRobot::IRT::getTimestamp() {
-  return timestamp;
-}
-
 //Sets whether non-directed signals are relayed
 void TowerRobot::IRT::setAutoRelay(bool active) {
   autoRelay = active;
@@ -200,9 +195,6 @@ void TowerRobot::IRT::update() {
   if (recvActive && IrReceiver.decode()) {
     //Ensures protocol is correct and is not interfering with sending
     if ((IrReceiver.decodedIRData.protocol == NEC) && (!(IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW)) && ((millis() - lastSend) >= sheildTime)) {
-      //Timestamps signal
-      timestamp = millis();
-
       //Unpacks signal
       unpack(IrReceiver.decodedIRData.address, IrReceiver.decodedIRData.command);
 
@@ -211,8 +203,11 @@ void TowerRobot::IRT::update() {
       //Determines whether signal is addressed or has master address
       recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
 
-      //Auto relays non-directed commands
-      if (!recvExists && autoRelay) {
+      if (recvExists) {
+        //Moves to next channel
+        nextChannel(IR_CYCLE);
+      } else if (autoRelay) {
+        //Auto relays non-directed commands
         send(recvAddress, recvCommand, recvData);
         waitSend();
       }
@@ -223,8 +218,10 @@ void TowerRobot::IRT::update() {
 
   //Sends data
   if (sendActive) {
-    //Checks to see if their are still repeats left and interval is reached
+    //Checks to see if there are still repeats left and interval is reached
     if (((currRepeats < sendRepeats) || (sendRepeats == -1)) && ((millis() - lastSend) >= currInterval)) {
+      //Waits for channel
+      waitChannel(numChannels, IR_CYCLE);
       IrSender.sendNEC(sendAddress, sendCommand, 0);
 
       useInterval();
@@ -242,26 +239,32 @@ void TowerRobot::IRT::synchronize() {
   waitSend();
 }
 
-//Starts channel synchronization
-void TowerRobot::IRT::beginSync() {
+//Resets channel synchronization
+void TowerRobot::IRT::resetChannels() {
   syncStart = millis();
 }
 
+//Sets number of channels
+void TowerRobot::IRT::setChannels(int channels) {
+  numChannels = channels;
+}
+
 //Waits until time channel is open
-void TowerRobot::IRT::waitSync(int channels, int size) {
-  //Waits for incorrect parity
-  while (((millis() - syncStart)/size) % channels != (getAddress() % channels)) {
-    update();
-  }
-  //Waits for correct parity
-  while (((millis() - syncStart)/size) % channels == (getAddress() % channels)) {
-    update();
+void TowerRobot::IRT::waitChannel(int channels, int size) {
+  //If there are multiple channels
+  if (numChannels > 0) {
+    //Waits for incorrect parity
+    while (((millis() - syncStart)/size) % channels == (getAddress() % channels)) {
+      update();
+    }
+    //Waits for correct parity
+    while (((millis() - syncStart)/size) % channels != (getAddress() % channels)) {
+      update();
+    }
   }
 }
 
-//Updates synchronization based on channel increment
-void TowerRobot::IRT::updateSync(unsigned long timestamp, int size) {
-  //Sets synchronization start to closest channel increment
-  int time = millis();
-  syncStart = time - round((time - syncStart) / (double) size)*size;
+//Moves to next time channel
+void TowerRobot::IRT::nextChannel(int size) {
+  syncStart = timestamp - ((timestamp - syncStart)/size + 1)*size;
 }

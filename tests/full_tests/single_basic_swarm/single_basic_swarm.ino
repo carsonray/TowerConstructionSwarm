@@ -74,6 +74,7 @@ int bufferColors[10];
 bool openTowers[4] = {true, true, true, true};
 
 void setup() {
+  robot.begin();
   robot.setTowerHeights(1, 1, 1, 1);
   robot.home();
 }

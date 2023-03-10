@@ -310,6 +310,9 @@ class TowerRobot {
 				//Wait time to avoid receiving interference
 				int sheildTime = 15;
 
+				//Current number of channels
+				int numChannels = 1;
+
 				//Current recieved address
 				unsigned int recvAddress = 0;
 
@@ -321,9 +324,6 @@ class TowerRobot {
 
 				//Time of synchronization start
 				unsigned long syncStart = 0;
-
-				//Timestamp for last received signal
-				unsigned long timestamp = 0;
 
 				//Whether signals for other addresses are automatically relayed
 				bool autoRelay = false;
@@ -359,16 +359,16 @@ class TowerRobot {
 				void waitReceive();
 				bool waitReceive(int timeout);
 
-				unsigned long getTimestamp();
-
 				void setAutoRelay(bool active);
 
 				void update();
 
 				void synchronize();
-				void beginSync();
-				void waitSync(int channels, int size);
-				void updateSync(unsigned long timestamp, int size);
+				
+				void resetChannels();
+				void setChannels(int channels);
+				void waitChannel(int channels, int size);
+				void nextChannel(int size);
 		};
 
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);
@@ -381,6 +381,8 @@ class TowerRobot {
 		bool waitSlideTurret();
 
 		void sleep(unsigned long timeout);
+
+		void begin();
 
 		void home();
 		void home(double homePos);

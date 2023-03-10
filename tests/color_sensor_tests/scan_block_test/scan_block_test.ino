@@ -48,6 +48,7 @@ TowerRobot::ColorSensor colorSensor = TowerRobot::ColorSensor();
 TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor);
 
 void setup() {
+  robot.begin();
   robot.setTowerHeights(4, 0, 0, 0);
   robot.home();
 }

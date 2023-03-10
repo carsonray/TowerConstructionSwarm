@@ -47,6 +47,7 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper);
 int targetTower = 2;
 
 void setup() {
+  robot.begin();
   robot.setTowerHeights(1, 1, 0, 0);
   robot.home();
 

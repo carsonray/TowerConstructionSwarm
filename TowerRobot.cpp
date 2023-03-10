@@ -38,11 +38,8 @@ int TowerRobot::getTowerHeight(int tower) {
   return towerHeights[tower];
 }
 
-//Homes robot
-void TowerRobot::home() {
-  home(slide->getHomePos());
-}
-void TowerRobot::home(double homePos) {
+//Begins all components
+void TowerRobot::begin() {
   if (irtInit) {
     irt->begin();
   }
@@ -50,6 +47,13 @@ void TowerRobot::home(double homePos) {
     colorSensor->begin();
   }
   gripper->begin();
+}
+
+//Homes robot
+void TowerRobot::home() {
+  home(slide->getHomePos());
+}
+void TowerRobot::home(double homePos) {
   gripper->open();
 
   turret->home();
@@ -348,7 +352,7 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
 
     //Gets color of block
     if (irtInit) {
-      irt->waitSync(2, COLOR_CYCLE);
+      irt->waitChannel(2, COLOR_CYCLE);
     }
 
     int blockColor = colorSensor->getBlockColor();
@@ -377,7 +381,7 @@ void TowerRobot::synchronize() {
 
       if (command == DONE) {
         //Starts synchronization
-        irt->beginSync();
+        irt->resetChannels();
 
         //Relays done signal
         sleep(IR_CYCLE);
@@ -421,7 +425,7 @@ void TowerRobot::endYield() {
 //Sends yielding signal
 void TowerRobot::sendYield() {
   if (irtInit) {
-    irt->waitSync(2, IR_CYCLE);
+    irt->waitChannel(2, IR_CYCLE);
 
     //Next tower
     unsigned int nextTower = turret->nextTowerTo(turretTarget);
@@ -461,7 +465,7 @@ void TowerRobot::sendDone() {
 
     if (prevTower != turretTarget) {
       //Sends previous tower if not the same as target tower
-      irt->waitSync(2, IR_CYCLE);
+      irt->waitChannel(2, IR_CYCLE);
       irt->send(MASTER_ADDRESS, DONE, prevTower);
       irt->waitSend();
     }
@@ -504,7 +508,7 @@ bool TowerRobot::updateYield() {
       irt->update();
       if (irt->receive(&command, &data)) {
         //Updates channel synchronization
-        irt->updateSync(irt->getTimestamp(), IR_CYCLE);
+        irt->nextChannel(IR_CYCLE);
 
         //Gets next tower
         int nextTower = turret->nextTowerTo(turretTarget);
