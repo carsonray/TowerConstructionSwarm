@@ -307,6 +307,9 @@ class TowerRobot {
 				//Whether recieved signal is availiable
 				bool recvExists = false;
 
+				//Whether interrupt is in place
+				bool interrupt = false;
+
 				//Wait time to avoid receiving interference
 				int sheildTime = 15;
 
@@ -353,8 +356,13 @@ class TowerRobot {
 
 				void setReceiveActive(bool active);
 
+				bool receive();
 				bool receive(unsigned int*command, unsigned int*data);
 				bool receive(unsigned int*address, unsigned int*command, unsigned int*data);
+
+				void resume();
+
+				void setInterrupt();
 
 				void waitReceive();
 				bool waitReceive(int timeout);
@@ -448,10 +456,10 @@ class TowerRobot {
 		int cargo = 0;
 
 		//Target turret position
-		int turretTarget = 0;
+		int turretTarget = -1;
 
 		//Target slide position
-		int slideTarget = 0;
+		int slideTarget = -1;
 
 		//Whether target positions are tracked
 		bool turretTracking = true;

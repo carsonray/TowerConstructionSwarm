@@ -68,6 +68,7 @@ void TowerRobot::IRT::send(unsigned int address, unsigned int command, unsigned 
   sendRepeats = 1;
 
   sendActive = true;
+  interrupt = false;
 }
 
 //Sets interval between repeats
@@ -137,6 +138,9 @@ void TowerRobot::IRT::unpack(unsigned int address, unsigned int command) {
 }
 
 //Receives any signal data
+bool TowerRobot::IRT::receive() {
+  return recvExists;
+}
 bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
   //Ensures signal is availiable
   if (recvExists) {
@@ -144,8 +148,6 @@ bool TowerRobot::IRT::receive(unsigned int*command, unsigned int*data) {
     *command = recvCommand;
     *data = recvData;
 
-    //Turns off receive
-    recvExists = false;
     return true;
   } else {
     return false;
@@ -159,12 +161,20 @@ bool TowerRobot::IRT::receive(unsigned int*address, unsigned int*command, unsign
     *command = recvCommand;
     *data = recvData;
 
-    //Turns off receive
-    recvExists = false;
     return true;
   } else {
     return false;
   }
+}
+
+// Clears received data
+void TowerRobot::IRT::resume() {
+  recvExists = false;
+}
+
+//Sets receive interrupt
+void TowerRobot::IRT::setInterrupt() {
+  interrupt = true;
 }
 
 //Waits until something is received
@@ -206,6 +216,11 @@ void TowerRobot::IRT::update() {
       if (recvExists) {
         //Normalizes time channel
         syncChannel(IR_CYCLE);
+
+        //Stops sending if recieve interrupt exists
+        if (interrupt) {
+          setSendRepeats(0);
+        }
       } else if (autoRelay) {
         //Auto relays non-directed commands
         send(recvAddress, recvCommand, recvData);
@@ -224,18 +239,20 @@ void TowerRobot::IRT::update() {
       int hold = sendRepeats;
       sendRepeats = 0;
 
-      //Waits for channel and sends
+      //Waits for channel and sends if not interrupted
       waitChannel(numChannels, IR_CYCLE);
-      IrSender.sendNEC(sendAddress, sendCommand, 0);
+      if (!(interrupt && recvExists)) {
+        IrSender.sendNEC(sendAddress, sendCommand, 0);
 
-      //Resets
-      sendRepeats = hold;
+        //Resets
+        sendRepeats = hold;
 
-      //Sets interval
-      useInterval();
+        //Sets interval
+        useInterval();
 
-      //Increments repeats
-      currRepeats++;
+        //Increments repeats
+        currRepeats++;
+      }
     }
   }
 }
@@ -269,10 +286,16 @@ void TowerRobot::IRT::waitChannel(int channels, int size) {
     //Waits for incorrect parity
     while (((millis() - syncStart)/size) % channels == (getAddress() % channels)) {
       update();
+      if (interrupt && recvExists) {
+        break;
+      }
     }
     //Waits for correct parity
     while (((millis() - syncStart)/size) % channels != (getAddress() % channels)) {
       update();
+      if (interrupt && recvExists) {
+        break;
+      }
     }
   }
 }

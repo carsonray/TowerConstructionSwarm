@@ -274,6 +274,10 @@ bool TowerRobot::load(int tower, int blockNum) {
     gripper->close();
     gripper->wait();
 
+    //Sets ambiguous targets
+    setTurretTarget(-1);
+    setTurretTarget(-1);
+
     //Sends done signal
     sendDone();
 
@@ -299,6 +303,10 @@ bool TowerRobot::unload(int tower) {
     //Opens gripper
     gripper->open();
     gripper->wait();
+
+    //Sets ambiguous targets
+    setTurretTarget(-1);
+    setTurretTarget(-1);
 
     //Sends done signal
     sendDone();
@@ -343,9 +351,6 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     gripper->open();
 
     //Moves to tower clockwise from target to align color sensor with target
-    setTurretTarget(turret->nextTower(tower, -1));
-    setSlideTarget(blockNum);
-
     if (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
       return -2;
     }
@@ -378,6 +383,7 @@ void TowerRobot::synchronize() {
       //Waits until done is received
       irt->waitReceive();
       irt->receive(&command, &data);
+      irt->resume();
 
       if (command == DONE) {
         //Starts synchronization
@@ -428,7 +434,7 @@ void TowerRobot::endYield() {
 
 //Sends yielding signal
 void TowerRobot::sendYield() {
-  if (irtInit) {
+  if (irtInit && (yieldMode == PENDING) && (turretTarget >= 0)) {
     //Next tower
     unsigned int nextTower = turret->nextTowerTo(turretTarget);
 
@@ -455,19 +461,24 @@ void TowerRobot::sendYield() {
       irt->send(MASTER_ADDRESS, command, data);
     }
     
+    //Waits until sent unless something is received
+    irt->setInterrupt();
     irt->waitSend();
   }
 }
 
 //Sends done signal to previous tower
 void TowerRobot::sendDone() {
-  if (irtInit) {
+  if (irtInit && (yieldMode == PENDING)) {
     //Gets previous tower
     int prevTower = turret->prevTowerTo(turret->targetTower());
 
     if (prevTower != turretTarget) {
       //Sends previous tower if not the same as target tower
       irt->send(MASTER_ADDRESS, DONE, prevTower);
+
+      //Waits until sent unless something is received
+      irt->setInterrupt();
       irt->waitSend();
     }
   }
@@ -496,7 +507,7 @@ bool TowerRobot::updateYield() {
       //Sends done signal to previous tower
       sendDone();
 
-      //Sends yield signal
+      //Sends yield signal for next tower
       sendYield();
     }
 
@@ -508,6 +519,8 @@ bool TowerRobot::updateYield() {
       //Updates signals
       irt->update();
       if (irt->receive(&command, &data)) {
+        irt->resume();
+
         //Gets next tower
         int nextTower = turret->nextTowerTo(turretTarget);
 
@@ -583,6 +596,8 @@ void TowerRobot::remoteControl() {
     irt->update();
     unsigned int command, data;
     if (irt->receive(&command, &data)) {
+      irt->resume();
+
       if (command == SLIDE) {
         slide->moveToBlock(data);
       } else if (command == TURRET) {

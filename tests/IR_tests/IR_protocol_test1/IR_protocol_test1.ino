@@ -65,6 +65,8 @@ void loop() {
 
   int command, data;
   if (irt.receive(&command, &data)) {
+    irt->resume();
+    
     Serial.println(command);
     Serial.println(data);
   }
