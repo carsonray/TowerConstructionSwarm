@@ -53,19 +53,18 @@ TowerRobot robot = TowerRobot(&slide, &turret, &gripper, &colorSensor, &irt);
 void setup() {
   Serial.begin(9600);
   robot.begin();
+  irt.setChannels(2);
   robot.synchronize();
   Serial.println("Synchronized");
 }
 
 void loop() {
-  irt.waitChannel(2, 2000);
   Serial.println("Sending");
   irt.send(MASTER_ADDRESS, DONE, irt.getAddress());
   irt.waitSend();
 
   int command, data;
   if (irt.receive(&command, &data)) {
-    irt.nextChannel(2000);
     Serial.println(command);
     Serial.println(data);
   }

@@ -80,6 +80,7 @@ void setup() {
   randomSeed(analogRead(A0));
   robot.begin();
   robot.setTowerHeights(1, 1, 1, 1);
+  irt.setChannels(2);
   robot.beginYield();
   robot.home();
   robot.synchronize();
