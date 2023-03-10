@@ -25,10 +25,10 @@ namespace BlockColors {
 }
 
 namespace IRcommands {
-	//Delay cycle for responses
-	#define IR_CYCLE 60
+	//Time channel size
+	#define IR_CYCLE 200
 
-	//Delay cycle for color sensor readings
+	//Color sensor channel size
 	#define COLOR_CYCLE 300
 
 	//Address accepted by all
@@ -366,9 +366,10 @@ class TowerRobot {
 				void synchronize();
 				
 				void resetChannels();
+				int getChannels();
 				void setChannels(int channels);
 				void waitChannel(int channels, int size);
-				void nextChannel(int size);
+				void syncChannel(int size);
 		};
 
 		TowerRobot(Slide* slide, Turret* turret, Gripper* gripper);

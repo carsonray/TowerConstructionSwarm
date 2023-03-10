@@ -59,9 +59,9 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("Sending");
   irt.send(MASTER_ADDRESS, DONE, irt.getAddress());
   irt.waitSend();
+  Serial.println("Sending");
 
   int command, data;
   if (irt.receive(&command, &data)) {

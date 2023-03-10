@@ -204,8 +204,8 @@ void TowerRobot::IRT::update() {
       recvExists = (recvAddress == address) || (recvAddress == MASTER_ADDRESS);
 
       if (recvExists) {
-        //Moves to next channel
-        nextChannel(IR_CYCLE);
+        //Normalizes time channel
+        syncChannel(IR_CYCLE);
       } else if (autoRelay) {
         //Auto relays non-directed commands
         send(recvAddress, recvCommand, recvData);
@@ -252,6 +252,11 @@ void TowerRobot::IRT::resetChannels() {
   syncStart = millis();
 }
 
+//Gets number of channels
+int TowerRobot::IRT::getChannels() {
+  return numChannels;
+}
+
 //Sets number of channels
 void TowerRobot::IRT::setChannels(int channels) {
   numChannels = channels;
@@ -260,7 +265,7 @@ void TowerRobot::IRT::setChannels(int channels) {
 //Waits until time channel is open
 void TowerRobot::IRT::waitChannel(int channels, int size) {
   //If there are multiple channels
-  if (numChannels > 0) {
+  if (numChannels > 1) {
     //Waits for incorrect parity
     while (((millis() - syncStart)/size) % channels == (getAddress() % channels)) {
       update();
@@ -272,8 +277,8 @@ void TowerRobot::IRT::waitChannel(int channels, int size) {
   }
 }
 
-//Moves to next time channel
-void TowerRobot::IRT::nextChannel(int size) {
+//Moves to middle of time channel
+void TowerRobot::IRT::syncChannel(int size) {
   unsigned long time = millis();
-  syncStart = time - ((time - syncStart)/size + 1)*size;
+  syncStart = time - (unsigned long) ((time - syncStart)/size + 0.5)*size;
 }

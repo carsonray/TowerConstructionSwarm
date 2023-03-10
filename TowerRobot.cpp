@@ -263,7 +263,7 @@ bool TowerRobot::load(int tower, int blockNum) {
     if (irtInit) {
       sendYield();
 
-      sleep(IR_CYCLE*2);
+      sleep(IR_CYCLE);
 
       if (!updateYield()) {
         return false;
@@ -383,10 +383,14 @@ void TowerRobot::synchronize() {
         //Starts synchronization
         irt->resetChannels();
 
-        //Relays done signal
-        sleep(IR_CYCLE);
+        //Sends with minimal delay
+        sleep(60);
+        int hold = irt->getChannels();
+        irt->setChannels(1);
         irt->send(MASTER_ADDRESS, DONE, data);
         irt->waitSend();
+
+        irt->setChannels(hold);
         break;
       }
     }
