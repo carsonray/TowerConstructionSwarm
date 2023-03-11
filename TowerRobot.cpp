@@ -92,9 +92,6 @@ bool TowerRobot::moveToBlock(int tower) {
   return moveToBlock(tower, towerHeights[tower] - 1);
 }
 bool TowerRobot::moveToBlock(int tower, double blockNum) {
-  //Whether robot is at target tower
-  bool atTower = (abs(turret->getTowerPos(tower) - turret->currentPosition(false)) < turret->getStepError());
-
   if (cargo == 0) {
     //No cargo
 
@@ -102,7 +99,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     gripper->open();
 
     //If needs to move to different tower
-    if (irtInit && !atTower) {
+    if (irtInit && (tower != turret->targetTower())) {
       //Moves slide to zero to avoid unloading robots
       slide->moveToBlock(0);
       turret->moveToCarry(turret->nextTowerTo(tower));
@@ -142,7 +139,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     }
     
     //If not at correct tower
-    if (!atTower) {
+    if (tower != turret->targetTower()) {
       int clearHeight;
       if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
         clearHeight = towerHeights[turret->targetTower()];
