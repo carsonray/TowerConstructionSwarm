@@ -162,6 +162,8 @@ class TowerRobot {
 			public:
 				Turret(double stepsPerDegree, ScaledStepper* stepper);
 
+				double localDistance(double targetPos);
+
 				double distanceToGo();
 				void wait();
 
@@ -187,9 +189,6 @@ class TowerRobot {
 
 				int nextTowerTo(int target);
 				int nextTowerTo(int curr, int target);
-
-				int prevTowerTo(int target);
-				int prevTowerTo(int curr, int target);
 
 				bool run();
 				void stop(bool brake);
