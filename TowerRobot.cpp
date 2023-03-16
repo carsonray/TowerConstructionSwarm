@@ -86,6 +86,28 @@ void TowerRobot::sleep(unsigned long timeout) {
   }
 }
 
+//Gets closest staggered position to target position
+int TowerRobot::getStaggerPos(int blockPos) {
+  //Gets current slide position
+  int currPos = slide->targetBlock();
+
+  //Gets modulo equivalent of robot address based on current position
+  int staggered = currPos/staggerNum*staggerNum + irt->getAddress() % staggerNum;
+
+  //If stagger position can fit closer to current and target positions
+  int dist = (currPos + blockPos) - staggered*2;
+  if (abs(dist) > staggerNum) {
+    staggered += staggerNum*Utils::sign(dist);
+  }
+
+  //Ensures stagger position is greater than zero
+  if (staggered < 0) {
+    staggered += staggerNum;
+  }
+
+  return staggered;
+}
+
 //Moves to tower and block position
 bool TowerRobot::moveToBlock(int tower) {
   //Moves to top of tower as default
@@ -100,12 +122,13 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
 
     //If needs to move to different tower
     if (irtInit && (tower != turret->closestTower())) {
-      //Moves slide to zero to avoid unloading robots
-      slide->moveToBlock(0);
+      //Moves slide to closest staggered level to avoid other robots
+      slide->moveToBlock(getStaggerPos(blockNum));
       turret->moveToCarry(turret->nextTowerTo(tower));
       bool slideRun = true;
       bool turretRun = true;
-      while (slideRun || turretRun) {
+      bool finalMove = false;
+      while (slideRun || turretRun || (!finalMove)) {
         if (!updateYield()) {
           return false;
         }
@@ -114,13 +137,14 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
         slideRun = slide->run();
         turretRun = turret->run();
 
-        //Moves turret to final position if slide is down all the way
+        //Moves turret to final position if slide is done
         if (!slideRun) {
           turret->moveToTower(tower);
 
           //Moves slide to final position if turret is close enough
-          if (tower == turret->closestTower()) {
+          if ((tower == turret->closestTower()) && (!finalMove)) {
             slide->moveToBlock(blockNum);
+            finalMove = true;
           }
         }
       }
@@ -156,15 +180,13 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
         clearHeight = slide->targetBlock();
       }
 
+      //Ensures unloading robots are staggered
       if (irtInit) {
-        //Ensures unloading robots are staggered
-        if (clearHeight % 2 != irt->getAddress() % 2) {
-          clearHeight += 1;
-        }
+        clearHeight = getStaggerPos(clearHeight);
 
-        //Ensures unloading does not interfere with loading at first level
-        if (clearHeight == 0) {
-          clearHeight = 2;
+        //Ensures staggered height is greater than tower height
+        while (clearHeight < towerHeights[testPos]) {
+          clearHeight += irt->getChannels();
         }
       }
       
@@ -517,35 +539,34 @@ bool TowerRobot::updateYield() {
               otherToTarget = (command == UNLOAD_TARGET);
             }
 
-            if ((toTarget || otherToTarget) || ((cargo > 0) && !otherLoading)) {
-              //If any robot is going to target or both are unloading
-              if ((cargo > 0) && otherLoading) {
-                //If unloading, ensures other robot is blocked if it is loading
+            if ((cargo > 0) && !otherLoading) {
+              //If both robots are unloading, checks for higher robot
+              if (slide->blockTarget() > data / 4) {
+                //Blocks if targets match
+                if (toTarget && otherToTarget) {
+                  yieldMode = BLOCKED;
+                  blocked = true;
+                }
+
+                //Moves to clear other robot
+                int clearHeight = getStaggerHeight(data / 4);
+                while(clearHeight < data / 4) {
+                  clearHeight += irt->getChannels();
+                }
+                slide->moveToClear(clearHeight);
+                slide->wait();
+              } else {
+                //Blocks other robot if it is higher
+                sendYield();
+              }
+            } else if (toTarget && otherToTarget) {
+              if (otherLoading) {
+                //Blocks other robot if it is loading
                 sendYield();
               } else {
-                //Activates blocking mode
+                //Otherwise pauses until other robot is done
                 yieldMode = BLOCKED;
-
-                //Complete block occurs if both are target state
-                blocked = toTarget && otherToTarget;
-
-                //If other robot is unloading
-                if (!otherLoading) {
-                  //If unloading, move to clear other robot
-                  if (cargo > 0) {
-                    slide->moveToClear(data / 4);
-                    slide->wait();
-
-                    //Unblocks if not going to same place
-                    if (!blocked) {
-                      yieldMode = PENDING;
-                    }
-                  }
-                  
-                  //Move to carry position to avoid interference
-                  turret->moveToCarry(nextTower);
-                  turret->wait();
-                }
+                blocked = true;
               }
             }
           }

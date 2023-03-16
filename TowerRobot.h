@@ -400,6 +400,8 @@ class TowerRobot {
 		void home();
 		void home(double homePos);
 
+		int getStaggerPos(int blockPos);
+
 		bool moveToBlock(int tower);
 		bool moveToBlock(int tower, double blockNum);
 
@@ -471,6 +473,9 @@ class TowerRobot {
 
 		//Angle to send signals at (0 - 90)
 		double sendAngle = 35;
+
+		//Number of staggering channels
+		int staggerNum = 2;
 };
 
 #endif
