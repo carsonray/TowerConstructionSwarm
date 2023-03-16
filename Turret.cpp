@@ -30,6 +30,11 @@ double TowerRobot::Turret::localize(double globalAngle) {
   return globalAngle - round(globalAngle/360)*360;
 }
 
+//Gets local distance to target position
+double TowerRobot::Turret::localDistance(double targetPos) {
+  return localize(targetPos - currentPosition());
+}
+
 //Gets distance to target position
 double TowerRobot::Turret::distanceToGo() {
   return convertToDegree(stepper->distanceToGo());
@@ -91,12 +96,17 @@ double TowerRobot::Turret::getStepError() {
   return convertToDegree(0.5/stepper->getStepMode());
 }
 
+//Gets number of tower positions
+int TowerRobot::Turret::numPos() {
+  return sizeof(towerPos)/sizeof(towerPos[0]);
+}
+
 //Gets closest tower position
 int TowerRobot::Turret::closestTower() {
   double minDist = 0;
   int minPos = 0;
   for (int i = 0; i < numPos(); i++) {
-    double dist = abs(localize(towerPos[i] - currentPosition()));
+    double dist = abs(localDistance(towerPos[i]));
 
     if ((dist < minDist) || (i == 0)) {
       minDist = dist;
@@ -107,37 +117,42 @@ int TowerRobot::Turret::closestTower() {
   return minPos;
 }
 
-//Gets number of tower positions
-int TowerRobot::Turret::numPos() {
-  return sizeof(towerPos)/sizeof(towerPos[0]);
+//Whether robot is at a tower
+bool TowerRobot::Turret::atTower(int tower) {
+  //Checks whether distance to closest tower is within margin
+  return (abs(localDistance(towerPos[tower])) <= towerMargin);
 }
 
-//Gets next tower in direction
-int TowerRobot::Turret::nextTower(int change) {
-  return nextTower(targetTowerPos, change);
+//Gets next tower in current direction
+int TowerRobot::Turret::nextTower() {
+  int dir = Utils::sign(distanceToGo());
+  return nextTower(dir);
 }
+//Gets next tower in direction from current position
+int TowerRobot::Turret::nextTower(int change) {
+  int closest = closestTower();
+  if (localDistance(towerPos[closest])*change == 1) {
+    //If closest tower is in desired direction, use it
+    return closestTower();
+  } else {
+    //Otherwise get the next tower from the closest tower
+    return nextTower(closest, change);
+  }
+}
+//Wraps around tower positions
 int TowerRobot::Turret::nextTower(int curr, int change) {
   //Increments tower position
   return Utils::modulo(curr + change, numPos());
 }
 
-
 //Gets next tower traveling to target
 int TowerRobot::Turret::nextTowerTo(int target) {
-  return nextTowerTo(targetTowerPos, target);
+  //Gets next tower in shortest direction of travel
+  return nextTower(Utils::sign(localDistance(towerPos[target]))); 
 }
 int TowerRobot::Turret::nextTowerTo(int curr, int target) {
   //Gets next tower in shortest direction of travel
   return nextTower(curr, Utils::sign(localize(towerPos[target] - towerPos[curr])));
-}
-
-//Gets next tower traveling to target
-int TowerRobot::Turret::prevTowerTo(int target) {
-  return prevTowerTo(targetTowerPos, target);
-}
-int TowerRobot::Turret::prevTowerTo(int curr, int target) {
-  //Gets previous tower in opposite direction of travel
-  return nextTower(curr, Utils::sign(localize(towerPos[curr] - towerPos[target])));
 }
 
 //Runs Turret step
@@ -163,7 +178,7 @@ void TowerRobot::Turret::moveTo(bool global, double degree) {
 void TowerRobot::Turret::moveTo(bool global, double degree, double accel, double max) {
   //If local target, add to local position
   if (!global) {
-    degree = currentPosition() + (localize(degree - currentPosition()));
+    degree = currentPosition() + localDistance(degree);
   }
 
   //Sets stepper settings
@@ -197,7 +212,7 @@ void TowerRobot::Turret::moveToCarry(int tower) {
 }
 void TowerRobot::Turret::moveToCarry(int tower, double accel, double max) {
   //Direction to target position
-  double dir = Utils::sign(localize(towerPos[tower] - currentPosition()));
+  double dir = Utils::sign(localDistance(towerPos[tower]));
 
   //Ensures dir is not zero
   if (dir == 0) {

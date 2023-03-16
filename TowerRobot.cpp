@@ -99,7 +99,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
     gripper->open();
 
     //If needs to move to different tower
-    if (irtInit && (tower != turret->targetTower())) {
+    if (irtInit && (tower != turret->closestTower())) {
       //Moves slide to zero to avoid unloading robots
       slide->moveToBlock(0);
       turret->moveToCarry(turret->nextTowerTo(tower));
@@ -119,7 +119,7 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
           turret->moveToTower(tower);
 
           //Moves slide to final position if turret is close enough
-          if (turret->closestTower() == tower) {
+          if (tower == turret->closestTower()) {
             slide->moveToBlock(blockNum);
           }
         }
@@ -138,93 +138,81 @@ bool TowerRobot::moveToBlock(int tower, double blockNum) {
       blockNum = towerHeights[tower];
     }
     
-    //If not at correct tower
-    if (tower != turret->targetTower()) {
-      int clearHeight;
-      if (slide->currentPosition() - (clearHeight + slide->getClearMargin()) < -slide->getStepError()) {
-        clearHeight = towerHeights[turret->targetTower()];
-      } else {
+    //First checks current position if at tower
+    int testPos;
+    if (turret->atTower(turret->closestTower())) {
+      testPos = turret->closestTower();
+    } else {
+      testPos = turret->nextTowerTo(tower);
+    }
+
+    //Loops through towers between current and target
+    while (true) {
+      //Gets height of test tower
+      int clearHeight = towerHeights[testPos];
+
+      //Uses current block position if higher
+      if (slide->targetBlock() > clearHeight) {
         clearHeight = slide->targetBlock();
       }
-        
-      //Moves to clear current tower
+
       if (irtInit) {
         //Ensures unloading robots are staggered
         if (clearHeight % 2 != irt->getAddress() % 2) {
           clearHeight += 1;
         }
 
-        //Ensures unloading robots are not at zero position to run into loading robots
+        //Ensures unloading does not interfere with loading at first level
         if (clearHeight == 0) {
           clearHeight = 2;
         }
       }
       
-      //Moves to position and clears tower if necessary
-      if (clearHeight == towerHeights[turret->targetTower()]) {
-        slide->moveToClear(clearHeight);
-      } else {
-        slide->moveToBlock(clearHeight);
-      }
-      if (!waitSlideTurret()) {
-        return false;
-      }
+      //If current position will not clear height or tower
+      if ((slide->targetBlock() != clearHeight) || (slide->currentPosition() - (towerHeights[testPos] + slide->getClearMargin()) < -slide->getStepError())) {
+        //Moves to position and clears tower if necessary
+        if (clearHeight == towerHeights[testPos]) {
+          slide->moveToClear(clearHeight);
+        } else {
+          slide->moveToBlock(clearHeight);
+        }
 
-      //Loops through towers between current and target
-      int testPos = turret->nextTowerTo(tower);
-      while (true) {
-        //If current position will not clear tower
-        if (slide->currentPosition() - (towerHeights[testPos] + slide->getClearMargin()) < -slide->getStepError()) {
-          //Moves to height of obstructing tower
-          clearHeight = towerHeights[testPos];
-
-          //Ensures unloading robots are staggered
-          if (irtInit && (clearHeight % 2 != irt->getAddress() % 2)) {
-            clearHeight += 1;
-          }
-
-          //Moves to position and clears tower if necessary
-          if (clearHeight == towerHeights[testPos]) {
-            slide->moveToClear(clearHeight);
-          } else {
-            slide->moveToBlock(clearHeight);
-          }
-
-          //Moves to carry position next to tower
+        //Moves to carry position next to tower if not already at tower
+        if (!turret->atTower(testPos)) {
           turret->moveToCarry(testPos);
+        }
 
-          //Runs slide and turret
-          bool slideRun = true;
-          bool turretRun = true;
-          while (slideRun || turretRun) {
-            if (!updateYield()) {
-              return false;
-            }
+        //Runs slide and turret
+        bool slideRun = true;
+        bool turretRun = true;
+        while (slideRun || turretRun) {
+          if (!updateYield()) {
+            return false;
+          }
 
-            slideRun = slide->run();
-            turretRun = turret->run();
+          slideRun = slide->run();
+          turretRun = turret->run();
 
-            //Moves turret to final position if slide is done
-            if (!slideRun) {
-              turret->moveToTower(testPos);
-            }
+          //Moves turret to final position if slide is done
+          if (!slideRun) {
+            turret->moveToTower(testPos);
           }
         }
-
-        //Ends if final tower was checked
-        if (testPos == tower) {
-          break;
-        }
-
-        //Moves to next tower position
-        testPos = turret->nextTowerTo(testPos, tower);
       }
 
-      //Rotates final step to tower
-      turret->moveToTower(tower);
-      if (!waitSlideTurret()) {
-        return false;
+      //Ends if final tower was checked
+      if (testPos == tower) {
+        break;
       }
+
+      //Moves to next tower position
+      testPos = turret->nextTowerTo(testPos, tower);
+    }
+
+    //Rotates final step to tower
+    turret->moveToTower(tower);
+    if (!waitSlideTurret()) {
+      return false;
     }
 
     //Sends yield signal
@@ -424,7 +412,7 @@ void TowerRobot::endYield() {
 void TowerRobot::sendYield() {
   if (irtInit && (yieldMode == PENDING) && (turretTarget >= 0)) {
     //Next tower
-    unsigned int nextTower = turret->nextTowerTo(turret->targetTower());
+    unsigned int nextTower = turret->nextTower();
 
     //Target indicator
     unsigned int toTarget = (int) (nextTower == turretTarget);
@@ -458,7 +446,7 @@ void TowerRobot::sendYield() {
 //Sends done signal to previous tower
 void TowerRobot::sendDone() {
   if (irtInit && (yieldMode == PENDING)) {
-    //Sends done at current tower
+    //Sends done at previous tower
     irt->send(MASTER_ADDRESS, DONE, turret->targetTower());
     irt->waitSend();
   }
@@ -499,7 +487,7 @@ bool TowerRobot::updateYield() {
         irt->resume();
 
         //Gets next tower
-        int nextTower = turret->nextTowerTo(turret->targetTower());
+        int nextTower = turret->nextTower();
 
         //Whether robot is heading to target
         bool toTarget = (nextTower == turretTarget);

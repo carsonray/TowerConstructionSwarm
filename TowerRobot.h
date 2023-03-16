@@ -148,6 +148,9 @@ class TowerRobot {
 				//Tower positions
 				double towerPos[4] = {0, 90, 180, 270};
 
+				//Margin for being at a tower
+				double towerMargin = 15;
+
 				//Carry offset
 				double carryOffset = 45;
 
@@ -176,7 +179,9 @@ class TowerRobot {
 				double getStepError();
 
 				int closestTower();
+				bool atTower(int tower);
 
+				int nextTower();
 				int nextTower(int change);
 				int nextTower(int curr, int change);
 
