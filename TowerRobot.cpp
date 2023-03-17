@@ -287,10 +287,6 @@ bool TowerRobot::load(int tower, int blockNum) {
     //Sends done signal
     sendDone();
 
-    //Sets ambiguous targets
-    setTurretTarget(-1);
-    setTurretTarget(-1);
-
     //Updates tower height and cargo
     cargo = towerHeights[tower] - blockNum;
     towerHeights[tower] -= cargo;
@@ -306,6 +302,17 @@ bool TowerRobot::unload(int tower) {
     setTurretTarget(tower);
     setSlideTarget(towerHeights[tower]);
 
+    //Sends yielding signal
+    if (irtInit) {
+      sendYield();
+
+      sleep(IR_CYCLE);
+
+      if (!updateYield()) {
+        return false;
+      }
+    }
+
     if (!moveToBlock(tower, slideTarget)) {
       return false;
     }
@@ -316,10 +323,6 @@ bool TowerRobot::unload(int tower) {
 
     //Sends done signal
     sendDone();
-
-    //Sets ambiguous targets
-    setTurretTarget(-1);
-    setTurretTarget(-1);
 
     //Updates tower height and cargo
     towerHeights[tower] += cargo;
@@ -349,6 +352,8 @@ int TowerRobot::scanBlock(int tower, int blockNum) {
     gripper->open();
 
     //Moves to tower clockwise from target to align color sensor with target
+    setTurretTarget(-1);
+    setTurretTarget(-1);
     while (!moveToBlock(turret->nextTower(tower, -1), blockNum + sensorMargin)) {
       
     }
@@ -445,7 +450,7 @@ void TowerRobot::sendYield() {
       irt->send(MASTER_ADDRESS, LOAD, toTarget*4 + nextTower);
     } else {
       //Unload data with clear height and next tower
-      unsigned int data = (slideTarget + cargo)*4 + nextTower;
+      unsigned int data = (slide->targetBlock() + cargo)*4 + nextTower;
 
       //Sets command based on target indicator
       unsigned int command;
@@ -541,7 +546,7 @@ bool TowerRobot::updateYield() {
 
             if ((cargo > 0) && !otherLoading) {
               //If both robots are unloading, checks for higher robot
-              if (slide->blockTarget() > data / 4) {
+              if (slide->targetBlock() + cargo >= data / 4) {
                 //Blocks if targets match
                 if (toTarget && otherToTarget) {
                   yieldMode = BLOCKED;
@@ -549,24 +554,32 @@ bool TowerRobot::updateYield() {
                 }
 
                 //Moves to clear other robot
-                int clearHeight = getStaggerHeight(data / 4);
-                while(clearHeight < data / 4) {
-                  clearHeight += irt->getChannels();
+                if (slide->targetBlock() <= data / 4) {
+                  int clearHeight = getStaggerPos(data / 4);
+                  while(clearHeight < data / 4) {
+                    clearHeight += irt->getChannels();
+                  }
+                  slide->moveToClear(clearHeight);
+                  slide->wait();
                 }
-                slide->moveToClear(clearHeight);
-                slide->wait();
               } else {
                 //Blocks other robot if it is higher
                 sendYield();
               }
             } else if (toTarget && otherToTarget) {
-              if (otherLoading) {
-                //Blocks other robot if it is loading
+              if ((cargo > 0) && otherLoading) {
+                //If unloading, block loading robots
                 sendYield();
               } else {
                 //Otherwise pauses until other robot is done
                 yieldMode = BLOCKED;
                 blocked = true;
+
+                //If loading and other is unloading, move to carry position to avoid interference
+                if ((cargo == 0) && !otherLoading) {
+                  turret->moveToCarry(turret->nextTower());
+                  turret->wait();
+                }
               }
             }
           }
