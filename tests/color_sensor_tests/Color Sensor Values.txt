@@ -1,0 +1,36 @@
+Color Sensor Values:
+
+Empty:
+
+R: 4
+G: 2
+B: 1
+C: 7
+
+Black:
+
+R: 46
+G: 75
+B: 63
+C: 184
+
+White:
+
+R: 1127
+G: 2075
+B: 1754
+C: 4956
+
+Red:
+
+R: 176
+G: 79
+B: 66
+C: 321
+
+Blue:
+
+R: 54
+G: 184
+B: 390
+C: 628
